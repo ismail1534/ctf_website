@@ -4,6 +4,7 @@ const cookieParser = require("cookie-parser");
 const path = require("path");
 const dotenv = require("dotenv");
 const cors = require("cors");
+const MongoStore = require("connect-mongo");
 
 // Load environment variables
 dotenv.config();
@@ -36,8 +37,13 @@ app.use(
     secret: process.env.SESSION_SECRET || "default_session_secret",
     resave: false,
     saveUninitialized: false,
+    store: MongoStore.create({
+      mongoUrl: process.env.MONGODB_URI,
+      ttl: 24 * 60 * 60, // 1 day
+    }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
     },
   })
@@ -70,6 +76,6 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 3000;
-app.listen(PORT, () => {
+app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });
