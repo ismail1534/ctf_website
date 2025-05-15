@@ -2,5 +2,8 @@
     "rewrites": [
       { "source": "/api/(.*)", "destination": "https://ctf-website-backend-e5la.onrender.com/api/$1" },
       { "source": "/(.*)", "destination": "/index.html" }
+    ],
+    "routes": [
+      { "src": "/public/(.*)", "dest": "/public/$1" }
     ]
   }
