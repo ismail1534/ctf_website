@@ -26,7 +26,7 @@ app.use(cookieParser());
 // Add CORS middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000" || "https://ctf-website-mv21.vercel.app",
+    origin: [process.env.FRONTEND_URL, "http://localhost:3000", "https://ctf-website-mv21.vercel.app"],
     credentials: true,
   })
 );
@@ -65,7 +65,7 @@ app.use("/api/leaderboard", require("./routes/leaderboard"));
 
 // Serve index.html for all non-API routes
 app.get("*", (req, res) => {
-  res.sendFile(path.join(__dirname, "views", "index.html"));
+  res.sendFile(path.join(__dirname, "public", "index.html"));
 });
 
 // Error handler

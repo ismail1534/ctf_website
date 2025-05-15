@@ -102,7 +102,7 @@ const checkAdminAuth = async () => {
 // Logout
 const logout = async () => {
   try {
-    await fetch("/api/auth/logout");
+    await fetch(`${API_BASE_URL}/api/auth/logout`);
     state.user = null;
   } catch (error) {
     console.error("Logout error:", error);
