@@ -27,6 +27,8 @@ const renderLogin = () => {
 
       if (response.ok) {
         state.user = data.user;
+        // Store user data in localStorage to persist across page refreshes
+        localStorage.setItem("user", JSON.stringify(data.user));
         loginAlert.innerHTML = data.message;
         loginAlert.className = "alert alert-success";
 

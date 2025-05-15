@@ -30,15 +30,29 @@ router.post("/register", async (req, res) => {
 
     // Set session
     req.session.userId = user._id;
+    req.session.user = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    };
 
-    res.status(201).json({
-      message: "User registered successfully",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      },
+    // Save session explicitly
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ message: "Session error" });
+      }
+
+      res.status(201).json({
+        message: "User registered successfully",
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        },
+      });
     });
   } catch (error) {
     console.error("Registration error:", error);
@@ -50,16 +64,19 @@ router.post("/register", async (req, res) => {
 router.post("/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(`Login attempt for: ${username}`);
 
     // Find user by username
     const user = await User.findOne({ username });
 
     if (!user) {
+      console.log(`User not found: ${username}`);
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Check if the user is banned
     if (user.isBanned) {
+      console.log(`Banned user login attempt: ${username}`);
       return res.status(403).json({ message: "Your account has been banned" });
     }
 
@@ -67,20 +84,36 @@ router.post("/login", async (req, res) => {
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
+      console.log(`Invalid password for: ${username}`);
       return res.status(400).json({ message: "Invalid credentials" });
     }
 
     // Set session
     req.session.userId = user._id;
+    req.session.user = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    };
+    console.log(`Login successful for: ${username}, session:`, req.sessionID);
 
-    res.json({
-      message: "Login successful",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      },
+    // Save the session explicitly
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ message: "Session error" });
+      }
+
+      res.json({
+        message: "Login successful",
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        },
+      });
     });
   } catch (error) {
     console.error("Login error:", error);
@@ -92,11 +125,13 @@ router.post("/login", async (req, res) => {
 router.post("/admin/login", async (req, res) => {
   try {
     const { username, password } = req.body;
+    console.log(`Admin login attempt for: ${username}`);
 
     // Find user by username
     const user = await User.findOne({ username, isAdmin: true });
 
     if (!user) {
+      console.log(`Admin user not found: ${username}`);
       return res.status(400).json({ message: "Invalid admin credentials" });
     }
 
@@ -104,20 +139,37 @@ router.post("/admin/login", async (req, res) => {
     const isPasswordValid = await user.comparePassword(password);
 
     if (!isPasswordValid) {
+      console.log(`Invalid admin password for: ${username}`);
       return res.status(400).json({ message: "Invalid admin credentials" });
     }
 
     // Set session
     req.session.userId = user._id;
+    req.session.user = {
+      id: user._id,
+      username: user.username,
+      email: user.email,
+      isAdmin: user.isAdmin,
+    };
 
-    res.json({
-      message: "Admin login successful",
-      user: {
-        id: user._id,
-        username: user.username,
-        email: user.email,
-        isAdmin: user.isAdmin,
-      },
+    console.log(`Admin login successful for: ${username}, session:`, req.sessionID);
+
+    // Save session explicitly
+    req.session.save((err) => {
+      if (err) {
+        console.error("Session save error:", err);
+        return res.status(500).json({ message: "Session error" });
+      }
+
+      res.json({
+        message: "Admin login successful",
+        user: {
+          id: user._id,
+          username: user.username,
+          email: user.email,
+          isAdmin: user.isAdmin,
+        },
+      });
     });
   } catch (error) {
     console.error("Admin login error:", error);
@@ -167,6 +219,19 @@ router.get("/me", isAuthenticated, async (req, res) => {
     console.error("Get user error:", error);
     res.status(500).json({ message: "Server error" });
   }
+});
+
+// Healthcheck/status route
+router.get("/status", (req, res) => {
+  console.log("Status check, session ID:", req.sessionID);
+  console.log("Cookie header:", req.headers.cookie);
+
+  return res.json({
+    success: true,
+    message: "API is running",
+    hasSession: !!req.session.userId,
+    sessionID: req.sessionID,
+  });
 });
 
 module.exports = router;

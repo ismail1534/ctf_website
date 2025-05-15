@@ -108,6 +108,8 @@ const logout = async () => {
       credentials: "include",
     });
     state.user = null;
+    // Clear user data from localStorage
+    localStorage.removeItem("user");
   } catch (error) {
     console.error("Logout error:", error);
   }
@@ -192,6 +194,18 @@ const renderNotFound = () => {
 
 // Initialize the application
 const init = () => {
+  // Check localStorage for user data
+  const storedUser = localStorage.getItem("user");
+  if (storedUser) {
+    try {
+      state.user = JSON.parse(storedUser);
+      console.log("User loaded from localStorage:", state.user.username);
+    } catch (error) {
+      console.error("Error parsing user from localStorage:", error);
+      localStorage.removeItem("user");
+    }
+  }
+
   // Handle route changes
   window.addEventListener("hashchange", handleRouteChange);
 

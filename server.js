@@ -65,12 +65,13 @@ app.use(
       touchAfter: 24 * 3600, // time period in seconds
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production",
+      secure: true, // Must be true for cross-domain cookies with SameSite=None
       sameSite: "none", // Required for cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
+      domain: undefined, // Don't set a specific domain
     },
+    proxy: true, // Trust the reverse proxy
   })
 );
 
@@ -78,6 +79,13 @@ app.use(
 app.use((req, res, next) => {
   console.log("Session ID:", req.sessionID);
   console.log("Session User:", req.session.user ? req.session.user.username : "No user");
+  console.log("Cookies:", req.headers.cookie);
+
+  // Add headers to help with CORS and cookies
+  res.header("Access-Control-Allow-Credentials", "true");
+  res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
+  res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+
   next();
 });
 
