@@ -26,7 +26,7 @@ app.use(cookieParser());
 // Add CORS middleware
 app.use(
   cors({
-    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    origin: process.env.FRONTEND_URL || "http://localhost:3000" || "https://ctf-website-mv21.vercel.app",
     credentials: true,
   })
 );
