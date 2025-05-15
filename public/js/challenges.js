@@ -8,7 +8,9 @@ const renderDashboard = async () => {
 
   // Load challenges
   try {
-    const response = await fetch(API_BASE_URL + "/api/challenges");
+    const response = await fetch(API_BASE_URL + "/api/challenges", {
+      credentials: "include",
+    });
     const data = await response.json();
 
     state.challenges = data.challenges;
@@ -110,6 +112,7 @@ const openChallengeModal = (challengeId) => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ flag }),
+        credentials: "include",
       });
 
       const data = await response.json();

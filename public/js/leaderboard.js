@@ -8,7 +8,9 @@ const renderLeaderboard = async () => {
 
   // Load leaderboard data
   try {
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard`);
+    const response = await fetch(`${API_BASE_URL}/api/leaderboard`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`Server returned ${response.status}`);
     }
@@ -66,7 +68,9 @@ const setupLeaderboardRefresh = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/leaderboard`);
+      const response = await fetch(`${API_BASE_URL}/api/leaderboard`, {
+        credentials: "include",
+      });
       if (!response.ok) {
         throw new Error(`Server returned ${response.status}`);
       }

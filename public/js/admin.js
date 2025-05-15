@@ -41,7 +41,9 @@ const renderAdminChallenges = async () => {
 
   // Load challenges
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/challenges`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`Server returned ${response.status}`);
     }
@@ -99,12 +101,14 @@ const renderAdminChallenges = async () => {
         response = await fetch(`${API_BASE_URL}/api/admin/challenges/${challengeId}`, {
           method: "PUT",
           body: formData,
+          credentials: "include",
         });
       } else {
         // Create challenge
         response = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
           method: "POST",
           body: formData,
+          credentials: "include",
         });
       }
 
@@ -115,7 +119,9 @@ const renderAdminChallenges = async () => {
         challengesAlert.className = "alert alert-success";
 
         // Reload challenges
-        const challengesResponse = await fetch(`${API_BASE_URL}/api/admin/challenges`);
+        const challengesResponse = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
+          credentials: "include",
+        });
         const challengesData = await challengesResponse.json();
 
         renderChallengesTable(challengesData.challenges || []);
@@ -181,7 +187,9 @@ const renderChallengesTable = (challenges) => {
 // Edit challenge
 const editChallenge = async (challengeId) => {
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/challenges`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
+      credentials: "include",
+    });
     const data = await response.json();
 
     const challenge = data.challenges.find((c) => c._id === challengeId);
@@ -215,6 +223,7 @@ const deleteChallenge = async (challengeId) => {
   try {
     const response = await fetch(`${API_BASE_URL}/api/admin/challenges/${challengeId}`, {
       method: "DELETE",
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -224,7 +233,9 @@ const deleteChallenge = async (challengeId) => {
       document.getElementById("admin-challenges-alert").className = "alert alert-success";
 
       // Reload challenges
-      const challengesResponse = await fetch(`${API_BASE_URL}/api/admin/challenges`);
+      const challengesResponse = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
+        credentials: "include",
+      });
       const challengesData = await challengesResponse.json();
 
       renderChallengesTable(challengesData.challenges || []);
@@ -254,7 +265,9 @@ const renderAdminUsers = async () => {
 
   // Load users
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/users`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`Server returned ${response.status}`);
     }
@@ -331,6 +344,7 @@ const banUser = async (userId, banned) => {
         "Content-Type": "application/json",
       },
       body: JSON.stringify({ banned }),
+      credentials: "include",
     });
 
     const data = await response.json();
@@ -340,7 +354,9 @@ const banUser = async (userId, banned) => {
       document.getElementById("admin-users-alert").className = "alert alert-success";
 
       // Reload users
-      const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`);
+      const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`, {
+        credentials: "include",
+      });
       const usersData = await usersResponse.json();
 
       renderUsersTable(usersData.users || []);
@@ -371,7 +387,9 @@ const renderAdminSiteConfig = async () => {
 
   // Load site config
   try {
-    const response = await fetch(`${API_BASE_URL}/api/admin/site-config`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/site-config`, {
+      credentials: "include",
+    });
     if (!response.ok) {
       throw new Error(`Server returned ${response.status}`);
     }
@@ -396,6 +414,7 @@ const renderAdminSiteConfig = async () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ siteMode: siteModeSelect.value }),
+        credentials: "include",
       });
 
       const data = await response.json();

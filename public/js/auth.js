@@ -20,6 +20,7 @@ const renderLogin = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -76,6 +77,7 @@ const renderRegister = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, email, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
@@ -123,6 +125,7 @@ const renderAdminLogin = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       const data = await response.json();
