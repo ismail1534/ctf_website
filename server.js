@@ -3,6 +3,7 @@ const session = require("express-session");
 const cookieParser = require("cookie-parser");
 const path = require("path");
 const dotenv = require("dotenv");
+const cors = require("cors");
 
 // Load environment variables
 dotenv.config();
@@ -20,6 +21,14 @@ connectDB();
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
 app.use(cookieParser());
+
+// Add CORS middleware
+app.use(
+  cors({
+    origin: process.env.FRONTEND_URL || "http://localhost:3000",
+    credentials: true,
+  })
+);
 
 // Session configuration
 app.use(
