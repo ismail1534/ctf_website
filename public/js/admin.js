@@ -41,10 +41,13 @@ const renderAdminChallenges = async () => {
 
   // Load challenges
   try {
-    const response = await fetch("/api/admin/challenges");
+    const response = await fetch(`${API_BASE_URL}/api/admin/challenges`);
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
     const data = await response.json();
 
-    renderChallengesTable(data.challenges);
+    renderChallengesTable(data.challenges || []);
   } catch (error) {
     console.error("Admin challenges error:", error);
     challengesAlert.innerHTML = "Error loading challenges. Please try again.";
@@ -93,13 +96,13 @@ const renderAdminChallenges = async () => {
 
       if (challengeId) {
         // Update challenge
-        response = await fetch(`/api/admin/challenges/${challengeId}`, {
+        response = await fetch(`${API_BASE_URL}/api/admin/challenges/${challengeId}`, {
           method: "PUT",
           body: formData,
         });
       } else {
         // Create challenge
-        response = await fetch("/api/admin/challenges", {
+        response = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
           method: "POST",
           body: formData,
         });
@@ -112,10 +115,10 @@ const renderAdminChallenges = async () => {
         challengesAlert.className = "alert alert-success";
 
         // Reload challenges
-        const challengesResponse = await fetch("/api/admin/challenges");
+        const challengesResponse = await fetch(`${API_BASE_URL}/api/admin/challenges`);
         const challengesData = await challengesResponse.json();
 
-        renderChallengesTable(challengesData.challenges);
+        renderChallengesTable(challengesData.challenges || []);
 
         // Hide form
         challengeFormContainer.style.display = "none";
@@ -135,6 +138,14 @@ const renderAdminChallenges = async () => {
 const renderChallengesTable = (challenges) => {
   const challengesBody = document.getElementById("challenges-body");
   challengesBody.innerHTML = "";
+
+  if (!challenges || challenges.length === 0) {
+    // Handle empty challenges
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="5">No challenges found</td>`;
+    challengesBody.appendChild(row);
+    return;
+  }
 
   challenges.forEach((challenge) => {
     const row = document.createElement("tr");
@@ -170,7 +181,7 @@ const renderChallengesTable = (challenges) => {
 // Edit challenge
 const editChallenge = async (challengeId) => {
   try {
-    const response = await fetch(`/api/admin/challenges`);
+    const response = await fetch(`${API_BASE_URL}/api/admin/challenges`);
     const data = await response.json();
 
     const challenge = data.challenges.find((c) => c._id === challengeId);
@@ -202,7 +213,7 @@ const deleteChallenge = async (challengeId) => {
   }
 
   try {
-    const response = await fetch(`/api/admin/challenges/${challengeId}`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/challenges/${challengeId}`, {
       method: "DELETE",
     });
 
@@ -213,10 +224,10 @@ const deleteChallenge = async (challengeId) => {
       document.getElementById("admin-challenges-alert").className = "alert alert-success";
 
       // Reload challenges
-      const challengesResponse = await fetch("/api/admin/challenges");
+      const challengesResponse = await fetch(`${API_BASE_URL}/api/admin/challenges`);
       const challengesData = await challengesResponse.json();
 
-      renderChallengesTable(challengesData.challenges);
+      renderChallengesTable(challengesData.challenges || []);
     } else {
       document.getElementById("admin-challenges-alert").innerHTML = data.message;
       document.getElementById("admin-challenges-alert").className = "alert alert-danger";
@@ -243,10 +254,13 @@ const renderAdminUsers = async () => {
 
   // Load users
   try {
-    const response = await fetch("/api/admin/users");
+    const response = await fetch(`${API_BASE_URL}/api/admin/users`);
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
     const data = await response.json();
 
-    renderUsersTable(data.users);
+    renderUsersTable(data.users || []);
   } catch (error) {
     console.error("Admin users error:", error);
     usersAlert.innerHTML = "Error loading users. Please try again.";
@@ -258,6 +272,14 @@ const renderAdminUsers = async () => {
 const renderUsersTable = (users) => {
   const usersBody = document.getElementById("users-body");
   usersBody.innerHTML = "";
+
+  if (!users || users.length === 0) {
+    // Handle empty users
+    const row = document.createElement("tr");
+    row.innerHTML = `<td colspan="6">No users found</td>`;
+    usersBody.appendChild(row);
+    return;
+  }
 
   users.forEach((user) => {
     const row = document.createElement("tr");
@@ -303,7 +325,7 @@ const banUser = async (userId, banned) => {
   }
 
   try {
-    const response = await fetch(`/api/admin/users/${userId}/ban`, {
+    const response = await fetch(`${API_BASE_URL}/api/admin/users/${userId}/ban`, {
       method: "PUT",
       headers: {
         "Content-Type": "application/json",
@@ -318,10 +340,10 @@ const banUser = async (userId, banned) => {
       document.getElementById("admin-users-alert").className = "alert alert-success";
 
       // Reload users
-      const usersResponse = await fetch("/api/admin/users");
+      const usersResponse = await fetch(`${API_BASE_URL}/api/admin/users`);
       const usersData = await usersResponse.json();
 
-      renderUsersTable(usersData.users);
+      renderUsersTable(usersData.users || []);
     } else {
       document.getElementById("admin-users-alert").innerHTML = data.message;
       document.getElementById("admin-users-alert").className = "alert alert-danger";
@@ -349,7 +371,10 @@ const renderAdminSiteConfig = async () => {
 
   // Load site config
   try {
-    const response = await fetch("/api/admin/site-config");
+    const response = await fetch(`${API_BASE_URL}/api/admin/site-config`);
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
     const data = await response.json();
 
     // Set current mode
@@ -365,7 +390,7 @@ const renderAdminSiteConfig = async () => {
     e.preventDefault();
 
     try {
-      const response = await fetch("/api/admin/site-config", {
+      const response = await fetch(`${API_BASE_URL}/api/admin/site-config`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",
@@ -379,7 +404,7 @@ const renderAdminSiteConfig = async () => {
         configAlert.innerHTML = data.message;
         configAlert.className = "alert alert-success";
       } else {
-        configAlert.innerHTML = data.message;
+        configAlert.innerHTML = data.message || "Server error";
         configAlert.className = "alert alert-danger";
       }
     } catch (error) {

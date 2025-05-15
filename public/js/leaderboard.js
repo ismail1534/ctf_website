@@ -8,10 +8,13 @@ const renderLeaderboard = async () => {
 
   // Load leaderboard data
   try {
-    const response = await fetch("/api/leaderboard");
+    const response = await fetch(`${API_BASE_URL}/api/leaderboard`);
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
     const data = await response.json();
 
-    state.leaderboard = data.leaderboard;
+    state.leaderboard = data.leaderboard || [];
 
     if (state.leaderboard.length === 0) {
       leaderboardAlert.innerHTML = "No entries in the leaderboard yet.";
@@ -20,18 +23,7 @@ const renderLeaderboard = async () => {
     }
 
     // Render leaderboard
-    leaderboardBody.innerHTML = "";
-
-    state.leaderboard.forEach((entry, index) => {
-      const row = document.createElement("tr");
-      row.innerHTML = `
-        <td>${index + 1}</td>
-        <td>${entry.username}</td>
-        <td>${entry.challengesSolved}</td>
-      `;
-
-      leaderboardBody.appendChild(row);
-    });
+    renderLeaderboardEntries();
 
     // Set up auto-refresh for the leaderboard
     setupLeaderboardRefresh();
@@ -40,6 +32,23 @@ const renderLeaderboard = async () => {
     leaderboardAlert.innerHTML = "Error loading leaderboard. Please try again.";
     leaderboardAlert.className = "alert alert-danger";
   }
+};
+
+// Render leaderboard entries
+const renderLeaderboardEntries = () => {
+  const leaderboardBody = document.getElementById("leaderboard-body");
+  leaderboardBody.innerHTML = "";
+
+  state.leaderboard.forEach((entry, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${entry.username}</td>
+      <td>${entry.challengesSolved}</td>
+    `;
+
+    leaderboardBody.appendChild(row);
+  });
 };
 
 // Set up auto-refresh for the leaderboard
@@ -57,29 +66,19 @@ const setupLeaderboardRefresh = () => {
     }
 
     try {
-      const response = await fetch("/api/leaderboard");
+      const response = await fetch(`${API_BASE_URL}/api/leaderboard`);
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
       const data = await response.json();
 
-      state.leaderboard = data.leaderboard;
+      state.leaderboard = data.leaderboard || [];
 
+      // Update leaderboard if the element still exists
       const leaderboardBody = document.getElementById("leaderboard-body");
-      if (!leaderboardBody) {
-        return;
+      if (leaderboardBody) {
+        renderLeaderboardEntries();
       }
-
-      // Update leaderboard
-      leaderboardBody.innerHTML = "";
-
-      state.leaderboard.forEach((entry, index) => {
-        const row = document.createElement("tr");
-        row.innerHTML = `
-          <td>${index + 1}</td>
-          <td>${entry.username}</td>
-          <td>${entry.challengesSolved}</td>
-        `;
-
-        leaderboardBody.appendChild(row);
-      });
     } catch (error) {
       console.error("Leaderboard refresh error:", error);
     }

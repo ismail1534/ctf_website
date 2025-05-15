@@ -8,7 +8,7 @@ const renderDashboard = async () => {
 
   // Load challenges
   try {
-    const response = await fetch("/api/challenges");
+    const response = await fetch(API_BASE_URL + "/api/challenges");
     const data = await response.json();
 
     state.challenges = data.challenges;
@@ -87,7 +87,7 @@ const openChallengeModal = (challengeId) => {
   // Show or hide file download link
   if (challenge.file) {
     modalFileContainer.style.display = "block";
-    modalFileLink.href = `/api/challenges/download/${challenge._id}`;
+    modalFileLink.href = `${API_BASE_URL}/api/challenges/download/${challenge._id}`;
     modalFileLink.textContent = `Download ${challenge.file.originalName}`;
   } else {
     modalFileContainer.style.display = "none";
@@ -104,7 +104,7 @@ const openChallengeModal = (challengeId) => {
     }
 
     try {
-      const response = await fetch(`/api/challenges/submit/${challenge._id}`, {
+      const response = await fetch(`${API_BASE_URL}/api/challenges/submit/${challenge._id}`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

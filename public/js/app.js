@@ -74,7 +74,7 @@ const handleRouteChange = async () => {
 const checkAuth = async () => {
   if (!state.user) {
     try {
-      const response = await fetch("/api/auth/me");
+      const response = await fetch(API_BASE_URL + "/api/auth/me");
       if (response.ok) {
         const data = await response.json();
         state.user = data.user;
@@ -153,7 +153,7 @@ const renderHome = () => {
   const siteStatus = document.getElementById("site-status");
 
   // Get site config
-  fetch("/api/admin/site-config")
+  fetch(API_BASE_URL + "/api/admin/site-config")
     .then((response) => response.json())
     .then((data) => {
       state.siteConfig = data.config;

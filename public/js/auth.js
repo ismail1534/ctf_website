@@ -14,7 +14,7 @@ const renderLogin = () => {
     const password = document.getElementById("password").value;
 
     try {
-      const response = await fetch("/api/auth/login", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -70,7 +70,7 @@ const renderRegister = () => {
     }
 
     try {
-      const response = await fetch("/api/auth/register", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/register`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -117,7 +117,7 @@ const renderAdminLogin = () => {
     const password = document.getElementById("admin-password").value;
 
     try {
-      const response = await fetch("/api/auth/admin/login", {
+      const response = await fetch(`${API_BASE_URL}/api/auth/admin/login`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
