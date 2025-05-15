@@ -1,0 +1,252 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>CTF Competition</title>
+    <link rel="stylesheet" href="/public/css/style.css" />
+  </head>
+  <body>
+    <nav class="navbar">
+      <h1>CTF Competition</h1>
+      <ul id="nav-links">
+        <!-- Navigation links will be inserted here dynamically by JavaScript -->
+      </ul>
+    </nav>
+
+    <div class="container" id="app">
+      <!-- Page content will be inserted here dynamically by JavaScript -->
+    </div>
+
+    <!-- Templates for different pages -->
+
+    <!-- Home template -->
+    <template id="home-template">
+      <div class="card">
+        <h2>Welcome to the CTF Competition</h2>
+        <p>Test your skills by solving challenges and competing with your classmates.</p>
+        <div id="site-status" class="alert"></div>
+      </div>
+    </template>
+
+    <!-- Login template -->
+    <template id="login-template">
+      <div class="form-container">
+        <h2>Login</h2>
+        <div id="login-alert"></div>
+        <form id="login-form">
+          <div class="form-group">
+            <label for="username">Username</label>
+            <input type="text" id="username" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="password">Password</label>
+            <input type="password" id="password" class="form-control" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+        <p>Don't have an account? <a href="#/register">Register</a></p>
+      </div>
+    </template>
+
+    <!-- Register template -->
+    <template id="register-template">
+      <div class="form-container">
+        <h2>Register</h2>
+        <div id="register-alert"></div>
+        <form id="register-form">
+          <div class="form-group">
+            <label for="reg-username">Username</label>
+            <input type="text" id="reg-username" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="reg-email">Email</label>
+            <input type="email" id="reg-email" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="reg-password">Password</label>
+            <input type="password" id="reg-password" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="reg-confirm-password">Confirm Password</label>
+            <input type="password" id="reg-confirm-password" class="form-control" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Register</button>
+        </form>
+        <p>Already have an account? <a href="#/login">Login</a></p>
+      </div>
+    </template>
+
+    <!-- Dashboard template -->
+    <template id="dashboard-template">
+      <h2>Challenges</h2>
+      <div id="dashboard-alert"></div>
+      <div class="challenge-list" id="challenge-list">
+        <!-- Challenges will be inserted here dynamically -->
+      </div>
+    </template>
+
+    <!-- Challenge modal template -->
+    <template id="challenge-modal-template">
+      <div class="modal" id="challenge-modal">
+        <div class="modal-content">
+          <span class="close-modal">&times;</span>
+          <h2 id="modal-title"></h2>
+          <p id="modal-description"></p>
+          <div id="modal-file-container">
+            <a id="modal-file-link" class="btn btn-primary" target="_blank">Download File</a>
+          </div>
+          <div class="form-group">
+            <label for="flag-input">Submit Flag:</label>
+            <input type="text" id="flag-input" class="form-control" placeholder="Enter flag here" />
+          </div>
+          <button id="submit-flag" class="btn btn-success">Submit</button>
+          <div id="flag-result"></div>
+        </div>
+      </div>
+    </template>
+
+    <!-- Leaderboard template -->
+    <template id="leaderboard-template">
+      <h2>Leaderboard</h2>
+      <div id="leaderboard-alert"></div>
+      <table class="leaderboard">
+        <thead>
+          <tr>
+            <th>Rank</th>
+            <th>Username</th>
+            <th>Challenges Solved</th>
+          </tr>
+        </thead>
+        <tbody id="leaderboard-body">
+          <!-- Leaderboard data will be inserted here dynamically -->
+        </tbody>
+      </table>
+    </template>
+
+    <!-- Admin login template -->
+    <template id="admin-login-template">
+      <div class="form-container">
+        <h2>Admin Login</h2>
+        <div id="admin-login-alert"></div>
+        <form id="admin-login-form">
+          <div class="form-group">
+            <label for="admin-username">Username</label>
+            <input type="text" id="admin-username" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="admin-password">Password</label>
+            <input type="password" id="admin-password" class="form-control" required />
+          </div>
+          <button type="submit" class="btn btn-primary">Login</button>
+        </form>
+      </div>
+    </template>
+
+    <!-- Admin dashboard template -->
+    <template id="admin-dashboard-template">
+      <div class="admin-panel">
+        <div class="admin-sidebar">
+          <h3>Admin Menu</h3>
+          <ul>
+            <li><a href="#/admin/challenges">Manage Challenges</a></li>
+            <li><a href="#/admin/users">Manage Users</a></li>
+            <li><a href="#/admin/site-config">Site Configuration</a></li>
+          </ul>
+        </div>
+        <div class="admin-content" id="admin-content">
+          <!-- Admin content will be loaded here dynamically -->
+        </div>
+      </div>
+    </template>
+
+    <!-- Admin challenges template -->
+    <template id="admin-challenges-template">
+      <h2>Manage Challenges</h2>
+      <div id="admin-challenges-alert"></div>
+      <button id="add-challenge-btn" class="btn btn-primary">Add New Challenge</button>
+      <div class="challenge-form-container" id="challenge-form-container" style="display: none">
+        <h3 id="challenge-form-title">Add Challenge</h3>
+        <form id="challenge-form">
+          <input type="hidden" id="challenge-id" />
+          <div class="form-group">
+            <label for="challenge-title">Title</label>
+            <input type="text" id="challenge-title" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="challenge-description">Description</label>
+            <textarea id="challenge-description" class="form-control" rows="4" required></textarea>
+          </div>
+          <div class="form-group">
+            <label for="challenge-flag">Flag</label>
+            <input type="text" id="challenge-flag" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="challenge-file">File (Optional)</label>
+            <input type="file" id="challenge-file" class="form-control" />
+          </div>
+          <button type="submit" class="btn btn-success">Save Challenge</button>
+          <button type="button" id="cancel-challenge" class="btn">Cancel</button>
+        </form>
+      </div>
+      <table class="leaderboard" id="challenges-table">
+        <thead>
+          <tr>
+            <th>Title</th>
+            <th>Description</th>
+            <th>Flag</th>
+            <th>File</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="challenges-body">
+          <!-- Challenge data will be inserted here dynamically -->
+        </tbody>
+      </table>
+    </template>
+
+    <!-- Admin users template -->
+    <template id="admin-users-template">
+      <h2>Manage Users</h2>
+      <div id="admin-users-alert"></div>
+      <table class="leaderboard" id="users-table">
+        <thead>
+          <tr>
+            <th>Username</th>
+            <th>Email</th>
+            <th>Is Admin</th>
+            <th>Is Banned</th>
+            <th>Challenges Solved</th>
+            <th>Actions</th>
+          </tr>
+        </thead>
+        <tbody id="users-body">
+          <!-- User data will be inserted here dynamically -->
+        </tbody>
+      </table>
+    </template>
+
+    <!-- Admin site config template -->
+    <template id="admin-site-config-template">
+      <h2>Site Configuration</h2>
+      <div id="admin-config-alert"></div>
+      <form id="site-config-form">
+        <div class="form-group">
+          <label for="site-mode">Site Mode</label>
+          <select id="site-mode" class="form-control">
+            <option value="live">Live Mode</option>
+            <option value="leaderboard_only">Leaderboard Only Mode</option>
+          </select>
+        </div>
+        <button type="submit" class="btn btn-primary">Save Configuration</button>
+      </form>
+    </template>
+
+    <!-- JavaScript files -->
+    <script src="/public/js/app.js"></script>
+    <script src="/public/js/auth.js"></script>
+    <script src="/public/js/challenges.js"></script>
+    <script src="/public/js/leaderboard.js"></script>
+    <script src="/public/js/admin.js"></script>
+  </body>
+</html>
