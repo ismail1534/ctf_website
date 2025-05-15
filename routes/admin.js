@@ -7,6 +7,7 @@ const { isAdmin } = require("../middleware/auth");
 const upload = require("../middleware/upload");
 const path = require("path");
 const fs = require("fs");
+const cors = require("cors");
 
 // Get all challenges (including flags)
 router.get("/challenges", isAdmin, async (req, res) => {
