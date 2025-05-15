@@ -29,8 +29,12 @@ app.use(
     origin: function (origin, callback) {
       const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000", "https://ctf-website-mv21.vercel.app"];
       // Allow requests with no origin (like mobile apps, curl, postman)
-      if (!origin) return callback(null, true);
+      if (!origin) {
+        console.log("Request with no origin");
+        return callback(null, true);
+      }
       if (allowedOrigins.indexOf(origin) !== -1) {
+        console.log("Allowed origin:", origin);
         return callback(null, true);
       }
       console.log("Blocked origin:", origin);
@@ -42,6 +46,12 @@ app.use(
   })
 );
 
+// Add request logging middleware
+app.use((req, res, next) => {
+  console.log(`${req.method} ${req.path} - Origin: ${req.headers.origin || "No origin"}`);
+  next();
+});
+
 // Session configuration
 app.use(
   session({
@@ -51,6 +61,8 @@ app.use(
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
       ttl: 24 * 60 * 60, // 1 day
+      autoRemove: "native",
+      touchAfter: 24 * 3600, // time period in seconds
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
@@ -61,6 +73,13 @@ app.use(
     },
   })
 );
+
+// Debug session middleware
+app.use((req, res, next) => {
+  console.log("Session ID:", req.sessionID);
+  console.log("Session User:", req.session.user ? req.session.user.username : "No user");
+  next();
+});
 
 // Site mode middleware
 const { checkSiteMode } = require("./middleware/auth");
@@ -88,7 +107,7 @@ app.use((err, req, res, next) => {
 });
 
 // Start server
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT || 10000;
 app.listen(PORT, "0.0.0.0", () => {
   console.log(`Server running on port ${PORT}`);
 });

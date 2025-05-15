@@ -3,9 +3,18 @@ const SiteConfig = require("../models/SiteConfig");
 
 // Check if user is authenticated
 exports.isAuthenticated = (req, res, next) => {
-  if (req.session.userId) {
+  console.log("Checking authentication, session userId:", req.session.userId);
+
+  if (req.session && req.session.userId) {
     return next();
   }
+
+  // For API requests, return JSON
+  if (req.path.startsWith("/api/")) {
+    return res.status(401).json({ message: "Authentication required" });
+  }
+
+  // For browser requests, redirect
   res.redirect("/login");
 };
 

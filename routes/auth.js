@@ -127,8 +127,22 @@ router.post("/admin/login", async (req, res) => {
 
 // Logout route
 router.get("/logout", (req, res) => {
-  req.session.destroy();
-  res.json({ message: "Logged out successfully" });
+  console.log("Logout called, destroying session:", req.sessionID);
+
+  if (req.session) {
+    req.session.destroy((err) => {
+      if (err) {
+        console.error("Session destruction error:", err);
+        return res.status(500).json({ message: "Logout failed" });
+      }
+
+      // Clear the cookie
+      res.clearCookie("connect.sid");
+      res.json({ message: "Logged out successfully" });
+    });
+  } else {
+    res.json({ message: "Already logged out" });
+  }
 });
 
 // Get current user
