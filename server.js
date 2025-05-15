@@ -54,8 +54,8 @@ const { checkSiteMode } = require("./middleware/auth");
 app.use(checkSiteMode);
 
 // Serve static files
-app.use("/public", express.static(path.join(__dirname, "public")));
-app.use("/", express.static(path.join(__dirname, "views")));
+app.use(express.static(path.join(__dirname, "public")));
+// app.use("/", express.static(path.join(__dirname, "views")));
 
 // Routes
 app.use("/api/auth", require("./routes/auth"));
