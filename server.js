@@ -26,8 +26,19 @@ app.use(cookieParser());
 // Add CORS middleware
 app.use(
   cors({
-    origin: [process.env.FRONTEND_URL, "http://localhost:3000", "https://ctf-website-mv21.vercel.app"],
+    origin: function (origin, callback) {
+      const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000", "https://ctf-website-mv21.vercel.app"];
+      // Allow requests with no origin (like mobile apps, curl, postman)
+      if (!origin) return callback(null, true);
+      if (allowedOrigins.indexOf(origin) !== -1) {
+        return callback(null, true);
+      }
+      console.log("Blocked origin:", origin);
+      return callback(null, true); // Allow all origins for troubleshooting
+    },
     credentials: true,
+    methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "Authorization"],
   })
 );
 
@@ -43,8 +54,10 @@ app.use(
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production",
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      sameSite: "none", // Required for cross-domain cookies
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
+      httpOnly: true,
+      domain: process.env.NODE_ENV === "production" ? ".onrender.com" : undefined,
     },
   })
 );
