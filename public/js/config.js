@@ -1,1 +1,2 @@
-const API_BASE_URL = "https://ctf-website-backend-e5la.onrender.com";
+// Use a relative URL because Vercel is handling the API rewrites
+const API_BASE_URL = "";
