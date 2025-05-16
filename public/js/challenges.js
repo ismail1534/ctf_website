@@ -38,10 +38,21 @@ const renderChallenges = () => {
   state.challenges.forEach((challenge) => {
     const challengeElement = document.createElement("div");
     challengeElement.className = "challenge-item";
+    
+    // Create solved badge if the challenge is already solved
+    const isSolved = state.user && state.user.solvedChallenges && 
+                     state.user.solvedChallenges.includes(challenge._id);
+    
+    const solvedBadge = isSolved ? 
+      '<span class="solved-badge"><i class="fas fa-check-circle"></i> Solved</span>' : '';
+    
     challengeElement.innerHTML = `
-      <h3>${challenge.title}</h3>
+      ${solvedBadge}
+      <h3><i class="fas fa-puzzle-piece"></i> ${challenge.title}</h3>
       <p>${challenge.description.substring(0, 100)}${challenge.description.length > 100 ? "..." : ""}</p>
-      <button class="btn btn-primary view-challenge" data-id="${challenge._id}">View Challenge</button>
+      <button class="btn btn-primary view-challenge" data-id="${challenge._id}">
+        <i class="fas fa-eye"></i> View Challenge
+      </button>
     `;
 
     challengeList.appendChild(challengeElement);
@@ -147,6 +158,15 @@ const openChallengeModal = (challengeId) => {
     }
   });
 
-  // Show the modal
+  // Add escape key handler to close modal
+  const escapeHandler = (e) => {
+    if (e.key === "Escape") {
+      document.body.removeChild(modal);
+      window.removeEventListener("keydown", escapeHandler);
+    }
+  };
+  window.addEventListener("keydown", escapeHandler);
+
+  // Show the modal with animation
   modal.style.display = "block";
 };
