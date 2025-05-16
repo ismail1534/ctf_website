@@ -46,7 +46,7 @@ const addFooterIfNeeded = (path) => {
   // Create and append the footer
   const footer = document.createElement("div");
   footer.className = "footer";
-  footer.innerHTML = "Made by Ismail";
+  footer.innerHTML = "Made with ♥️ by Ismail";
 
   // Add to the body instead of container for fixed positioning
   document.body.appendChild(footer);
