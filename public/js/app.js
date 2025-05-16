@@ -46,13 +46,10 @@ const addFooterIfNeeded = (path) => {
   // Create and append the footer
   const footer = document.createElement("div");
   footer.className = "footer";
-  footer.innerHTML = 'Made with <span class="heart">♥️</span> by Ismail';
+  footer.innerHTML = "Made by Ismail";
 
-  // Add to container
-  const container = document.querySelector(".container");
-  if (container) {
-    container.appendChild(footer);
-  }
+  // Add to the body instead of container for fixed positioning
+  document.body.appendChild(footer);
 };
 
 // Handle route changes
