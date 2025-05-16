@@ -172,11 +172,16 @@ const renderHome = () => {
 
   const siteStatus = document.getElementById("site-status");
 
-  // Get site config
-  fetch(API_BASE_URL + "/api/admin/site-config", {
+  // Get site config using the public endpoint
+  fetch(API_BASE_URL + "/api/admin/site-config/public", {
     credentials: "include",
   })
-    .then((response) => response.json())
+    .then((response) => {
+      if (!response.ok) {
+        throw new Error(`Server returned ${response.status}`);
+      }
+      return response.json();
+    })
     .then((data) => {
       state.siteConfig = data.config;
 

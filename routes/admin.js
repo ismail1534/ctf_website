@@ -162,13 +162,30 @@ router.put("/users/:id/ban", isAdmin, async (req, res) => {
   }
 });
 
-// Get site configuration
+// Get site configuration (admin only - with all details)
 router.get("/site-config", isAdmin, async (req, res) => {
   try {
     const config = await SiteConfig.getConfig();
     res.json({ config });
   } catch (error) {
     console.error("Get site config error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+});
+
+// Public site configuration endpoint (available to all users)
+router.get("/site-config/public", async (req, res) => {
+  try {
+    const config = await SiteConfig.getConfig();
+    // Only return the public information
+    res.json({
+      config: {
+        siteMode: config.siteMode,
+        updatedAt: config.updatedAt,
+      },
+    });
+  } catch (error) {
+    console.error("Get public site config error:", error);
     res.status(500).json({ message: "Server error" });
   }
 });
