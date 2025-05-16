@@ -101,7 +101,58 @@ const openChallengeModal = (challengeId) => {
   if (challenge.file) {
     modalFileContainer.style.display = "block";
     modalFileLink.href = `${API_BASE_URL}/api/challenges/download/${challenge._id}`;
-    modalFileLink.textContent = `Download ${challenge.file.originalName}`;
+    modalFileLink.setAttribute("download", challenge.file.originalName);
+    modalFileLink.innerHTML = `<i class="fas fa-download"></i> Download ${challenge.file.originalName}`;
+    
+    // Add download handling with loading indicator
+    modalFileLink.addEventListener("click", async (e) => {
+      e.preventDefault();
+      
+      // Create and show loading indicator
+      const originalText = modalFileLink.innerHTML;
+      modalFileLink.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Downloading...`;
+      modalFileLink.classList.add("downloading");
+      
+      try {
+        const response = await fetch(`${API_BASE_URL}/api/challenges/download/${challenge._id}`, {
+          credentials: "include"
+        });
+        
+        if (!response.ok) {
+          throw new Error(`Failed to download: ${response.status}`);
+        }
+        
+        const blob = await response.blob();
+        const url = window.URL.createObjectURL(blob);
+        
+        // Create temporary link for download
+        const tempLink = document.createElement("a");
+        tempLink.style.display = "none";
+        tempLink.href = url;
+        tempLink.setAttribute("download", challenge.file.originalName);
+        document.body.appendChild(tempLink);
+        tempLink.click();
+        
+        // Clean up
+        window.URL.revokeObjectURL(url);
+        document.body.removeChild(tempLink);
+        
+        // Restore button text
+        modalFileLink.innerHTML = `<i class="fas fa-check"></i> Downloaded`;
+        setTimeout(() => {
+          modalFileLink.innerHTML = originalText;
+          modalFileLink.classList.remove("downloading");
+        }, 2000);
+        
+      } catch (error) {
+        console.error("Download error:", error);
+        modalFileLink.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Download failed`;
+        setTimeout(() => {
+          modalFileLink.innerHTML = originalText;
+          modalFileLink.classList.remove("downloading");
+        }, 2000);
+      }
+    });
   } else {
     modalFileContainer.style.display = "none";
   }

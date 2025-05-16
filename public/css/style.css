@@ -485,3 +485,33 @@ ul {
     padding: 1.5rem;
   }
 }
+
+/* Download button styles */
+#modal-file-link {
+  position: relative;
+  transition: all 0.3s ease;
+}
+
+#modal-file-link i {
+  margin-right: 8px;
+}
+
+#modal-file-link.downloading {
+  background: rgba(23, 162, 184, 0.2);
+  color: #17a2b8;
+  border: 1px solid #17a2b8;
+  pointer-events: none;
+}
+
+@keyframes spin {
+  0% {
+    transform: rotate(0deg);
+  }
+  100% {
+    transform: rotate(360deg);
+  }
+}
+
+.fa-spinner {
+  animation: spin 1s linear infinite;
+}
