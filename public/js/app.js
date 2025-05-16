@@ -30,6 +30,31 @@ const navigateTo = (path) => {
   window.location.hash = path;
 };
 
+// Add footer to the page (except login and register pages)
+const addFooterIfNeeded = (path) => {
+  // First remove any existing footer
+  const existingFooter = document.querySelector(".footer");
+  if (existingFooter) {
+    existingFooter.remove();
+  }
+
+  // Don't add footer to login or register pages
+  if (path === "/login" || path === "/register") {
+    return;
+  }
+
+  // Create and append the footer
+  const footer = document.createElement("div");
+  footer.className = "footer";
+  footer.innerHTML = 'Made with <span class="heart">♥️</span> by Ismail';
+
+  // Add to container
+  const container = document.querySelector(".container");
+  if (container) {
+    container.appendChild(footer);
+  }
+};
+
 // Handle route changes
 const handleRouteChange = async () => {
   const path = window.location.hash.substring(1) || "/";
@@ -64,6 +89,9 @@ const handleRouteChange = async () => {
     } else {
       renderNotFound();
     }
+
+    // Add footer if needed for the current page
+    addFooterIfNeeded(path);
   } catch (error) {
     console.error("Route error:", error);
     showAlert("Error loading page. Please try again.", "danger");

@@ -23,8 +23,17 @@ router.get("/", async (req, res) => {
       };
     });
 
-    // Sort by submission index (ascending) which represents solving order
-    leaderboard.sort((a, b) => a.submissionIndex - b.submissionIndex);
+    // Sort by number of challenges solved (descending) first,
+    // then by submission index (ascending) for tiebreakers
+    leaderboard.sort((a, b) => {
+      // First, compare by number of challenges solved (descending)
+      if (b.challengesSolved !== a.challengesSolved) {
+        return b.challengesSolved - a.challengesSolved;
+      }
+      
+      // If same number of challenges, sort by earliest submission index (ascending)
+      return a.submissionIndex - b.submissionIndex;
+    });
 
     res.json({ leaderboard });
   } catch (error) {
