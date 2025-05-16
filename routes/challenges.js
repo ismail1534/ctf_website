@@ -5,6 +5,7 @@ const User = require("../models/User");
 const SiteConfig = require("../models/SiteConfig");
 const { isAuthenticated, isNotBanned } = require("../middleware/auth");
 const path = require("path");
+const fs = require("fs");
 
 // Get all challenges
 router.get("/", isAuthenticated, isNotBanned, async (req, res) => {
@@ -18,7 +19,7 @@ router.get("/", isAuthenticated, isNotBanned, async (req, res) => {
   }
 });
 
-// Download challenge file
+// Download challenge file - improved version with better error handling
 router.get("/download/:id", isAuthenticated, isNotBanned, async (req, res) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
@@ -28,7 +29,34 @@ router.get("/download/:id", isAuthenticated, isNotBanned, async (req, res) => {
     }
 
     const filePath = path.join(__dirname, "..", challenge.file.path);
-    res.download(filePath, challenge.file.originalName);
+    
+    // Check if file exists before trying to download
+    if (!fs.existsSync(filePath)) {
+      console.error(`File not found at path: ${filePath}`);
+      return res.status(404).json({ message: "File not found on server" });
+    }
+
+    // Log successful download attempt
+    console.log(`Sending file: ${filePath} as ${challenge.file.originalName}`);
+
+    // Set content disposition explicitly for better download handling
+    res.setHeader('Content-Disposition', `attachment; filename="${challenge.file.originalName}"`);
+    res.setHeader('Content-Type', 'application/octet-stream');
+    
+    // Send file with explicit options
+    res.sendFile(filePath, {
+      headers: {
+        'Content-Disposition': `attachment; filename="${challenge.file.originalName}"`
+      }
+    }, (err) => {
+      if (err) {
+        console.error('Error sending file:', err);
+        // Don't try to send another response if headers are already sent
+        if (!res.headersSent) {
+          res.status(500).json({ message: "Error sending file" });
+        }
+      }
+    });
   } catch (error) {
     console.error("Download error:", error);
     res.status(500).json({ message: "Server error" });
