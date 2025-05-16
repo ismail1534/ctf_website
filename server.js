@@ -27,22 +27,31 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Allow all origins in development
+      if (process.env.NODE_ENV !== "production") {
+        return callback(null, true);
+      }
+
       const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000", "https://ctf-website-mv21.vercel.app"];
+
       // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) {
         console.log("Request with no origin");
         return callback(null, true);
       }
+
       if (allowedOrigins.indexOf(origin) !== -1) {
         console.log("Allowed origin:", origin);
         return callback(null, true);
       }
-      console.log("Blocked origin:", origin);
+
+      console.log("Origin being checked:", origin);
       return callback(null, true); // Allow all origins for troubleshooting
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization"],
+    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    exposedHeaders: ["set-cookie"],
   })
 );
 
@@ -65,8 +74,8 @@ app.use(
       touchAfter: 24 * 3600, // time period in seconds
     }),
     cookie: {
-      secure: true, // Must be true for cross-domain cookies with SameSite=None
-      sameSite: "none", // Required for cross-domain cookies
+      secure: process.env.NODE_ENV === "production", // Only use secure in production
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax in development
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       domain: undefined, // Don't set a specific domain

@@ -225,12 +225,34 @@ router.get("/me", isAuthenticated, async (req, res) => {
 router.get("/status", (req, res) => {
   console.log("Status check, session ID:", req.sessionID);
   console.log("Cookie header:", req.headers.cookie);
+  console.log("User agent:", req.headers["user-agent"]);
+  console.log("Request origin:", req.headers.origin);
+
+  // Check and refresh session if needed
+  if (req.session.userId) {
+    // Touch the session to keep it alive
+    req.session.touch();
+
+    // Save session to ensure it's properly stored
+    req.session.save((err) => {
+      if (err) console.error("Session save error in status check:", err);
+    });
+  }
 
   return res.json({
     success: true,
     message: "API is running",
     hasSession: !!req.session.userId,
     sessionID: req.sessionID,
+    user: req.session.user
+      ? {
+          username: req.session.user.username,
+          isAdmin: req.session.user.isAdmin,
+        }
+      : null,
+    userAgent: req.headers["user-agent"],
+    origin: req.headers.origin,
+    hasCookieHeader: !!req.headers.cookie,
   });
 });
 

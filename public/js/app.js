@@ -81,6 +81,20 @@ const checkAuth = async () => {
         const data = await response.json();
         state.user = data.user;
       } else {
+        // Try to use localStorage data as fallback
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            console.log("Session not found, trying to re-authenticate with stored credentials");
+            const userData = JSON.parse(storedUser);
+            // Don't actually re-authenticate automatically for security reasons,
+            // but let the user know they need to login again
+            console.log("Authentication failed. Please log in again.");
+          } catch (error) {
+            console.error("Error parsing user from localStorage:", error);
+            localStorage.removeItem("user");
+          }
+        }
         throw new Error("Not authenticated");
       }
     } catch (error) {
@@ -205,6 +219,18 @@ const init = () => {
       localStorage.removeItem("user");
     }
   }
+
+  // Debug session status
+  fetch(`${API_BASE_URL}/api/auth/status`, {
+    credentials: "include",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Session status:", data);
+    })
+    .catch((error) => {
+      console.error("Session status check failed:", error);
+    });
 
   // Handle route changes
   window.addEventListener("hashchange", handleRouteChange);
