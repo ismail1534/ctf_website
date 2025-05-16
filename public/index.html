@@ -185,8 +185,14 @@
             <input type="text" id="challenge-flag" class="form-control" required />
           </div>
           <div class="form-group">
-            <label for="challenge-file">File (Optional)</label>
+            <label for="challenge-file-url">External File URL (Optional)</label>
+            <input type="url" id="challenge-file-url" class="form-control" placeholder="Enter URL to external file hosting" />
+            <small class="form-text text-muted">Paste a direct link to a file hosted on an external service.</small>
+          </div>
+          <div class="form-group">
+            <label for="challenge-file">OR Upload File (Optional)</label>
             <input type="file" id="challenge-file" class="form-control" />
+            <small class="form-text text-muted">If both URL and file are provided, the URL will be preferred.</small>
           </div>
           <button type="submit" class="btn btn-success">Save Challenge</button>
           <button type="button" id="cancel-challenge" class="btn">Cancel</button>

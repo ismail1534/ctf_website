@@ -44,9 +44,14 @@ const renderChallenges = () => {
 
     const solvedBadge = isSolved ? '<span class="solved-badge"><i class="fas fa-check-circle"></i> Solved</span>' : "";
 
+    // Determine if challenge has a file
+    const hasFile = challenge.fileUrl || (challenge.file && challenge.file.path);
+    const fileIndicator = hasFile ? '<span class="file-indicator"><i class="fas fa-file-alt"></i> Has File</span>' : "";
+
     challengeElement.innerHTML = `
       ${solvedBadge}
       <h3><i class="fas fa-puzzle-piece"></i> ${challenge.title}</h3>
+      ${fileIndicator}
       <p>${challenge.description.substring(0, 100)}${challenge.description.length > 100 ? "..." : ""}</p>
       <button class="btn btn-primary view-challenge" data-id="${challenge._id}">
         <i class="fas fa-eye"></i> View Challenge
@@ -96,39 +101,52 @@ const openChallengeModal = (challengeId) => {
   modalDescription.textContent = challenge.description;
 
   // Show or hide file download link
-  if (challenge.file) {
+  if (challenge.fileUrl) {
+    // Show container for file URL
     modalFileContainer.style.display = "block";
+
+    // Configure as external link
+    modalFileLink.href = challenge.fileUrl;
+    modalFileLink.setAttribute("target", "_blank");
+    modalFileLink.innerHTML = `<i class="fas fa-external-link-alt"></i> Open File`;
+
+    // Simple click handler for logging
+    modalFileLink.addEventListener("click", () => {
+      console.log("Opening external file URL:", challenge.fileUrl);
+    });
+  } else if (challenge.file && challenge.file.path) {
+    // Show container for local file
+    modalFileContainer.style.display = "block";
+
+    // Configure as download
     const downloadUrl = `${API_BASE_URL}/api/challenges/download/${challenge._id}`;
-    
-    // Configure download button
     modalFileLink.href = downloadUrl;
-    // Remove target="_blank" to prevent opening in new tab
     modalFileLink.removeAttribute("target");
     modalFileLink.setAttribute("download", challenge.file.originalName);
     modalFileLink.innerHTML = `<i class="fas fa-download"></i> Download ${challenge.file.originalName}`;
-    
+
     // Add download handling with loading indicator
     modalFileLink.addEventListener("click", async (e) => {
       e.preventDefault();
-      
+
       // Create and show loading indicator
       const originalText = modalFileLink.innerHTML;
       modalFileLink.innerHTML = `<i class="fas fa-spinner fa-spin"></i> Downloading...`;
       modalFileLink.classList.add("downloading");
-      
+
       try {
         // Force download using Blob approach which is more reliable
         const response = await fetch(downloadUrl, {
-          credentials: "include"
+          credentials: "include",
         });
-        
+
         if (!response.ok) {
           throw new Error(`Download failed (${response.status})`);
         }
-        
+
         // Get the file as a blob
         const blob = await response.blob();
-        
+
         // Create a blob URL and trigger download
         const url = window.URL.createObjectURL(blob);
         const a = document.createElement("a");
@@ -137,46 +155,45 @@ const openChallengeModal = (challengeId) => {
         a.download = challenge.file.originalName;
         document.body.appendChild(a);
         a.click();
-        
+
         // Clean up
         window.URL.revokeObjectURL(url);
         document.body.removeChild(a);
-        
+
         // Update UI to show success
         modalFileLink.innerHTML = `<i class="fas fa-check"></i> Downloaded`;
         setTimeout(() => {
           modalFileLink.innerHTML = originalText;
           modalFileLink.classList.remove("downloading");
         }, 2000);
-        
       } catch (error) {
         console.error("Download error:", error);
-        
+
         // Show error message
         modalFileLink.innerHTML = `<i class="fas fa-exclamation-triangle"></i> Download failed`;
         setTimeout(() => {
           modalFileLink.innerHTML = originalText;
           modalFileLink.classList.remove("downloading");
         }, 2000);
-        
+
         // Try one more time with a direct method as fallback
         try {
           // Create a hidden form to force download
-          const form = document.createElement('form');
-          form.method = 'GET';
+          const form = document.createElement("form");
+          form.method = "GET";
           form.action = downloadUrl;
-          form.style.display = 'none';
-          
+          form.style.display = "none";
+
           // Add a hidden field for credentials
-          const input = document.createElement('input');
-          input.type = 'hidden';
-          input.name = 'token';
+          const input = document.createElement("input");
+          input.type = "hidden";
+          input.name = "token";
           input.value = document.cookie.replace(/(?:(?:^|.*;\s*)connect.sid\s*\=\s*([^;]*).*$)|^.*$/, "$1");
-          
+
           form.appendChild(input);
           document.body.appendChild(form);
           form.submit();
-          
+
           setTimeout(() => {
             document.body.removeChild(form);
           }, 100);
@@ -186,6 +203,7 @@ const openChallengeModal = (challengeId) => {
       }
     });
   } else {
+    // Hide container if no file URL or local file
     modalFileContainer.style.display = "none";
   }
 

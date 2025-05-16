@@ -78,6 +78,7 @@ const renderAdminChallenges = async () => {
 
     // Get form data
     const challengeId = document.getElementById("challenge-id").value;
+    const fileUrl = document.getElementById("challenge-file-url").value.trim();
 
     // Create FormData object
     const formData = new FormData();
@@ -87,7 +88,12 @@ const renderAdminChallenges = async () => {
     formData.append("description", document.getElementById("challenge-description").value);
     formData.append("flag", document.getElementById("challenge-flag").value);
 
-    // Add file if selected
+    // Add fileUrl if provided
+    if (fileUrl) {
+      formData.append("fileUrl", fileUrl);
+    }
+
+    // Add file if selected and no URL is provided
     const fileInput = document.getElementById("challenge-file");
     if (fileInput.files.length > 0) {
       formData.append("file", fileInput.files[0]);
@@ -156,11 +162,19 @@ const renderChallengesTable = (challenges) => {
   challenges.forEach((challenge) => {
     const row = document.createElement("tr");
 
+    // Determine file display text
+    let fileDisplay = "No file";
+    if (challenge.fileUrl) {
+      fileDisplay = `<a href="${challenge.fileUrl}" target="_blank" class="file-link">External URL</a>`;
+    } else if (challenge.file && challenge.file.originalName) {
+      fileDisplay = challenge.file.originalName;
+    }
+
     row.innerHTML = `
       <td>${challenge.title}</td>
       <td>${challenge.description.substring(0, 50)}${challenge.description.length > 50 ? "..." : ""}</td>
       <td>${challenge.flag}</td>
-      <td>${challenge.file ? challenge.file.originalName : "No file"}</td>
+      <td>${fileDisplay}</td>
       <td>
         <button class="btn btn-primary edit-challenge" data-id="${challenge._id}">Edit</button>
         <button class="btn btn-danger delete-challenge" data-id="${challenge._id}">Delete</button>
@@ -187,29 +201,57 @@ const renderChallengesTable = (challenges) => {
 // Edit challenge
 const editChallenge = async (challengeId) => {
   try {
+    // Get challenges from API
     const response = await fetch(`${API_BASE_URL}/api/admin/challenges`, {
       credentials: "include",
     });
+    if (!response.ok) {
+      throw new Error(`Server returned ${response.status}`);
+    }
     const data = await response.json();
 
+    // Find the challenge by ID
     const challenge = data.challenges.find((c) => c._id === challengeId);
-
-    if (challenge) {
-      // Fill form
-      document.getElementById("challenge-id").value = challenge._id;
-      document.getElementById("challenge-title").value = challenge.title;
-      document.getElementById("challenge-description").value = challenge.description;
-      document.getElementById("challenge-flag").value = challenge.flag;
-
-      // Update title
-      document.getElementById("challenge-form-title").textContent = "Edit Challenge";
-
-      // Show form
-      document.getElementById("challenge-form-container").style.display = "block";
+    if (!challenge) {
+      throw new Error("Challenge not found");
     }
+
+    // Get form elements
+    const challengeForm = document.getElementById("challenge-form");
+    const challengeFormTitle = document.getElementById("challenge-form-title");
+    const challengeFormContainer = document.getElementById("challenge-form-container");
+
+    // Set form title
+    challengeFormTitle.textContent = "Edit Challenge";
+
+    // Populate form fields
+    document.getElementById("challenge-id").value = challenge._id;
+    document.getElementById("challenge-title").value = challenge.title;
+    document.getElementById("challenge-description").value = challenge.description;
+    document.getElementById("challenge-flag").value = challenge.flag;
+
+    // Populate file URL if exists
+    if (challenge.fileUrl) {
+      document.getElementById("challenge-file-url").value = challenge.fileUrl;
+    } else {
+      document.getElementById("challenge-file-url").value = "";
+    }
+
+    // Show current file name if exists
+    const fileInput = document.getElementById("challenge-file");
+    fileInput.value = ""; // Clear the file input
+    if (challenge.file && challenge.file.originalName) {
+      const fileLabel = document.createElement("div");
+      fileLabel.className = "current-file-name";
+      fileLabel.innerHTML = `Current file: <strong>${challenge.file.originalName}</strong>`;
+      fileInput.parentNode.insertBefore(fileLabel, fileInput.nextSibling);
+    }
+
+    // Show form
+    challengeFormContainer.style.display = "block";
   } catch (error) {
     console.error("Edit challenge error:", error);
-    document.getElementById("admin-challenges-alert").innerHTML = "Error editing challenge. Please try again.";
+    document.getElementById("admin-challenges-alert").innerHTML = "Error loading challenge for editing. Please try again.";
     document.getElementById("admin-challenges-alert").className = "alert alert-danger";
   }
 };

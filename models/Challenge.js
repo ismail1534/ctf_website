@@ -19,6 +19,10 @@ const ChallengeSchema = new mongoose.Schema({
     originalName: String,
     path: String,
   },
+  fileUrl: {
+    type: String,
+    trim: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

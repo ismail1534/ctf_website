@@ -287,6 +287,24 @@ ul {
   margin-right: 4px;
 }
 
+.file-indicator {
+  display: inline-flex;
+  align-items: center;
+  background-color: rgba(100, 255, 218, 0.1);
+  color: var(--neon-blue);
+  padding: 3px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 500;
+  margin-bottom: 8px;
+  border: 1px solid var(--neon-blue);
+  width: fit-content;
+}
+
+.file-indicator i {
+  margin-right: 4px;
+}
+
 /* Modal styles */
 .modal {
   display: none;
@@ -523,4 +541,21 @@ ul {
     margin: 5% auto;
     padding: 1.5rem;
   }
+}
+
+.file-link {
+  color: var(--neon-blue);
+  text-decoration: underline;
+  transition: var(--transition);
+}
+
+.file-link:hover {
+  text-decoration: none;
+  filter: brightness(1.2);
+}
+
+.current-file-name {
+  margin-top: 0.5rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
 }

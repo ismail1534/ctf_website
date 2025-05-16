@@ -23,16 +23,17 @@ router.get("/challenges", isAdmin, async (req, res) => {
 // Create a new challenge
 router.post("/challenges", isAdmin, upload.single("file"), async (req, res) => {
   try {
-    const { title, description, flag } = req.body;
+    const { title, description, flag, fileUrl } = req.body;
 
     const challenge = new Challenge({
       title,
       description,
       flag,
+      fileUrl,
     });
 
-    // If a file was uploaded
-    if (req.file) {
+    // If a file was uploaded and no URL is provided
+    if (req.file && !fileUrl) {
       challenge.file = {
         filename: req.file.filename,
         originalName: req.file.originalname,
@@ -55,7 +56,7 @@ router.post("/challenges", isAdmin, upload.single("file"), async (req, res) => {
 // Update a challenge
 router.put("/challenges/:id", isAdmin, upload.single("file"), async (req, res) => {
   try {
-    const { title, description, flag } = req.body;
+    const { title, description, flag, fileUrl } = req.body;
     const challenge = await Challenge.findById(req.params.id);
 
     if (!challenge) {
@@ -67,8 +68,13 @@ router.put("/challenges/:id", isAdmin, upload.single("file"), async (req, res) =
     challenge.description = description || challenge.description;
     challenge.flag = flag || challenge.flag;
 
-    // If a new file was uploaded
-    if (req.file) {
+    // Update file URL if provided
+    if (fileUrl !== undefined) {
+      challenge.fileUrl = fileUrl;
+    }
+
+    // If a new file was uploaded and no URL is provided
+    if (req.file && !fileUrl) {
       // Delete the old file if it exists
       if (challenge.file && challenge.file.path) {
         const oldFilePath = path.join(__dirname, "..", challenge.file.path);
@@ -83,6 +89,9 @@ router.put("/challenges/:id", isAdmin, upload.single("file"), async (req, res) =
         originalName: req.file.originalname,
         path: path.join("public", "uploads", req.file.filename),
       };
+    } else if (fileUrl) {
+      // Clear file data if URL is provided
+      challenge.file = undefined;
     }
 
     await challenge.save();
