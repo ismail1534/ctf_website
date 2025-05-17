@@ -52,7 +52,16 @@ const renderChallenges = () => {
     let deadlineDisplay = "";
     if (challenge.deadline) {
       const deadlineDate = new Date(challenge.deadline);
-      const options = { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+      // Pakistan timezone formatting
+      const options = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
+        minute: "2-digit",
+        timeZone: "Asia/Karachi", // Pakistan timezone
+        timeZoneName: "short",
+      };
       const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
       deadlineDisplay = `<div class="challenge-metadata"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
     }
@@ -191,7 +200,15 @@ const openChallengeModal = (challengeId) => {
 
   if (challenge.deadline) {
     const deadlineDate = new Date(challenge.deadline);
-    const options = { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+    const options = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
+      minute: "2-digit",
+      timeZone: "Asia/Karachi", // Pakistan timezone
+      timeZoneName: "short",
+    };
     const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
     metadataHTML += `<div class="metadata-item"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
   }
