@@ -88,6 +88,11 @@ const renderAdminChallenges = async () => {
     formData.append("description", document.getElementById("challenge-description").value);
     formData.append("flag", document.getElementById("challenge-flag").value);
 
+    // Add new optional fields
+    formData.append("hint", document.getElementById("challenge-hint").value);
+    formData.append("deadline", document.getElementById("challenge-deadline").value);
+    formData.append("author", document.getElementById("challenge-author").value);
+
     // Add fileUrl if provided
     if (fileUrl) {
       formData.append("fileUrl", fileUrl);
@@ -230,6 +235,20 @@ const editChallenge = async (challengeId) => {
     document.getElementById("challenge-description").value = challenge.description;
     document.getElementById("challenge-flag").value = challenge.flag;
 
+    // Populate new fields
+    document.getElementById("challenge-hint").value = challenge.hint || "";
+    document.getElementById("challenge-author").value = challenge.author || "";
+
+    // Format and set deadline if it exists
+    if (challenge.deadline) {
+      // Format the date to the required format for datetime-local input
+      const date = new Date(challenge.deadline);
+      const formattedDate = date.toISOString().slice(0, 16); // Format: YYYY-MM-DDThh:mm
+      document.getElementById("challenge-deadline").value = formattedDate;
+    } else {
+      document.getElementById("challenge-deadline").value = "";
+    }
+
     // Populate file URL if exists
     if (challenge.fileUrl) {
       document.getElementById("challenge-file-url").value = challenge.fileUrl;
@@ -240,6 +259,13 @@ const editChallenge = async (challengeId) => {
     // Show current file name if exists
     const fileInput = document.getElementById("challenge-file");
     fileInput.value = ""; // Clear the file input
+
+    // Remove any previous file name label
+    const existingFileLabel = document.querySelector(".current-file-name");
+    if (existingFileLabel) {
+      existingFileLabel.remove();
+    }
+
     if (challenge.file && challenge.file.originalName) {
       const fileLabel = document.createElement("div");
       fileLabel.className = "current-file-name";

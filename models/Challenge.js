@@ -14,6 +14,17 @@ const ChallengeSchema = new mongoose.Schema({
     type: String,
     required: true,
   },
+  hint: {
+    type: String,
+    trim: true,
+  },
+  deadline: {
+    type: Date,
+  },
+  author: {
+    type: String,
+    trim: true,
+  },
   file: {
     filename: String,
     originalName: String,

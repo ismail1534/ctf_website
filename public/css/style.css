@@ -264,9 +264,84 @@ ul {
 }
 
 .challenge-item p {
-  margin-bottom: 1.5rem;
+  margin-bottom: 1rem;
   color: var(--text-secondary);
   flex-grow: 1;
+}
+
+/* Challenge metadata */
+.challenge-metadata {
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  margin-bottom: 0.5rem;
+  display: flex;
+  align-items: center;
+}
+
+.challenge-metadata i {
+  margin-right: 5px;
+  color: var(--neon-blue);
+}
+
+.challenge-metadata-container {
+  margin-bottom: 1rem;
+  padding: 0.5rem;
+  background-color: rgba(35, 53, 84, 0.3);
+  border-radius: 4px;
+  border: 1px solid var(--light-blue);
+}
+
+.metadata-item {
+  margin-bottom: 0.3rem;
+  font-size: 0.9rem;
+  color: var(--text-secondary);
+  display: flex;
+  align-items: center;
+}
+
+.metadata-item:last-child {
+  margin-bottom: 0;
+}
+
+.metadata-item i {
+  margin-right: 8px;
+  color: var(--neon-blue);
+}
+
+/* Challenge buttons container */
+.challenge-buttons {
+  display: flex;
+  gap: 0.5rem;
+  margin-top: 0.5rem;
+}
+
+/* Hint button styles */
+.btn-info {
+  background: rgba(23, 162, 184, 0.2);
+  color: #17a2b8;
+  border: 1px solid #17a2b8;
+}
+
+.btn-info:hover {
+  background: rgba(23, 162, 184, 0.3);
+}
+
+/* Modal actions */
+.modal-actions {
+  display: flex;
+  gap: 0.75rem;
+  margin: 1rem 0;
+}
+
+/* Hint modal content */
+.hint-content {
+  background-color: rgba(35, 53, 84, 0.5);
+  padding: 1rem;
+  border-radius: 4px;
+  border: 1px solid var(--light-blue);
+  margin: 1rem 0;
+  color: #17a2b8;
+  font-style: italic;
 }
 
 .solved-badge {

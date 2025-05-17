@@ -99,6 +99,7 @@
         <div class="modal-content">
           <span class="close-modal">&times;</span>
           <h2 id="modal-title"></h2>
+          <div id="modal-metadata" class="challenge-metadata-container"></div>
           <p id="modal-description"></p>
           <div id="modal-file-container">
             <a id="modal-file-link" class="btn btn-primary"> <i class="fas fa-download"></i> Download File </a>
@@ -107,7 +108,9 @@
             <label for="flag-input">Submit Flag:</label>
             <input type="text" id="flag-input" class="form-control" placeholder="Enter flag here" />
           </div>
-          <button id="submit-flag" class="btn btn-success">Submit</button>
+          <div id="modal-actions" class="modal-actions">
+            <button id="submit-flag" class="btn btn-success">Submit</button>
+          </div>
           <div id="flag-result"></div>
         </div>
       </div>
@@ -187,6 +190,20 @@
           <div class="form-group">
             <label for="challenge-flag">Flag</label>
             <input type="text" id="challenge-flag" class="form-control" required />
+          </div>
+          <div class="form-group">
+            <label for="challenge-hint">Hint (Optional)</label>
+            <textarea id="challenge-hint" class="form-control" rows="2"></textarea>
+            <small class="form-text text-muted">A hint that will help users solve the challenge.</small>
+          </div>
+          <div class="form-group">
+            <label for="challenge-deadline">Deadline (Optional)</label>
+            <input type="datetime-local" id="challenge-deadline" class="form-control" />
+            <small class="form-text text-muted">Set a deadline for this challenge if applicable.</small>
+          </div>
+          <div class="form-group">
+            <label for="challenge-author">Author (Optional)</label>
+            <input type="text" id="challenge-author" class="form-control" placeholder="Who created this challenge?" />
           </div>
           <div class="form-group">
             <label for="challenge-file-url">External File URL (Optional)</label>

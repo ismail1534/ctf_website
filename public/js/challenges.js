@@ -48,14 +48,40 @@ const renderChallenges = () => {
     const hasFile = challenge.fileUrl || (challenge.file && challenge.file.path);
     const fileIndicator = hasFile ? '<span class="file-indicator"><i class="fas fa-file-alt"></i> Has File</span>' : "";
 
+    // Format deadline if it exists
+    let deadlineDisplay = "";
+    if (challenge.deadline) {
+      const deadlineDate = new Date(challenge.deadline);
+      const options = { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+      const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
+      deadlineDisplay = `<div class="challenge-metadata"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
+    }
+
+    // Show author if it exists
+    let authorDisplay = "";
+    if (challenge.author) {
+      authorDisplay = `<div class="challenge-metadata"><i class="fas fa-user-edit"></i> Author: ${challenge.author}</div>`;
+    }
+
     challengeElement.innerHTML = `
       ${solvedBadge}
       <h3><i class="fas fa-puzzle-piece"></i> ${challenge.title}</h3>
       ${fileIndicator}
       <p>${challenge.description.substring(0, 100)}${challenge.description.length > 100 ? "..." : ""}</p>
-      <button class="btn btn-primary view-challenge" data-id="${challenge._id}">
-        <i class="fas fa-eye"></i> View Challenge
-      </button>
+      ${deadlineDisplay}
+      ${authorDisplay}
+      <div class="challenge-buttons">
+        <button class="btn btn-primary view-challenge" data-id="${challenge._id}">
+          <i class="fas fa-eye"></i> View Challenge
+        </button>
+        ${
+          challenge.hint
+            ? `<button class="btn btn-info show-hint" data-id="${challenge._id}">
+          <i class="fas fa-lightbulb"></i> Hint
+        </button>`
+            : ""
+        }
+      </div>
     `;
 
     challengeList.appendChild(challengeElement);
@@ -68,6 +94,61 @@ const renderChallenges = () => {
       openChallengeModal(challengeId);
     });
   });
+
+  // Add event listeners to hint buttons
+  document.querySelectorAll(".show-hint").forEach((button) => {
+    button.addEventListener("click", (e) => {
+      e.stopPropagation();
+      const challengeId = button.getAttribute("data-id");
+      const challenge = state.challenges.find((c) => c._id === challengeId);
+      if (challenge && challenge.hint) {
+        showHintModal(challenge);
+      }
+    });
+  });
+};
+
+// Show hint modal
+const showHintModal = (challenge) => {
+  // Create modal for hint
+  const modal = document.createElement("div");
+  modal.className = "modal";
+  modal.id = "hint-modal";
+  modal.style.display = "block";
+
+  modal.innerHTML = `
+    <div class="modal-content">
+      <span class="close-modal">&times;</span>
+      <h2>Hint for ${challenge.title}</h2>
+      <div class="hint-content">
+        ${challenge.hint}
+      </div>
+    </div>
+  `;
+
+  document.body.appendChild(modal);
+
+  // Close modal handler
+  const closeModal = modal.querySelector(".close-modal");
+  closeModal.addEventListener("click", () => {
+    document.body.removeChild(modal);
+  });
+
+  // Close modal when clicking outside
+  window.addEventListener("click", (e) => {
+    if (e.target === modal) {
+      document.body.removeChild(modal);
+    }
+  });
+
+  // Add escape key handler
+  const escapeHandler = (e) => {
+    if (e.key === "Escape") {
+      document.body.removeChild(modal);
+      window.removeEventListener("keydown", escapeHandler);
+    }
+  };
+  window.addEventListener("keydown", escapeHandler);
 };
 
 // Open challenge modal
@@ -95,10 +176,44 @@ const openChallengeModal = (challengeId) => {
   const submitFlag = document.getElementById("submit-flag");
   const flagResult = document.getElementById("flag-result");
   const closeModal = document.querySelector(".close-modal");
+  const modalMetadata = document.getElementById("modal-metadata");
 
   // Fill modal with challenge data
   modalTitle.textContent = challenge.title;
   modalDescription.textContent = challenge.description;
+
+  // Add metadata (author and deadline)
+  let metadataHTML = "";
+
+  if (challenge.author) {
+    metadataHTML += `<div class="metadata-item"><i class="fas fa-user-edit"></i> Author: ${challenge.author}</div>`;
+  }
+
+  if (challenge.deadline) {
+    const deadlineDate = new Date(challenge.deadline);
+    const options = { year: "numeric", month: "short", day: "numeric", hour: "2-digit", minute: "2-digit" };
+    const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
+    metadataHTML += `<div class="metadata-item"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
+  }
+
+  if (metadataHTML) {
+    modalMetadata.innerHTML = metadataHTML;
+    modalMetadata.style.display = "block";
+  } else {
+    modalMetadata.style.display = "none";
+  }
+
+  // Add hint button if available
+  const modalActions = document.getElementById("modal-actions");
+  if (challenge.hint) {
+    const hintButton = document.createElement("button");
+    hintButton.className = "btn btn-info";
+    hintButton.innerHTML = '<i class="fas fa-lightbulb"></i> Show Hint';
+    hintButton.addEventListener("click", () => {
+      showHintModal(challenge);
+    });
+    modalActions.appendChild(hintButton);
+  }
 
   // Show or hide file download link
   if (challenge.fileUrl) {
