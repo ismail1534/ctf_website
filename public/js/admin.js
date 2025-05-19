@@ -90,41 +90,41 @@ const renderAdminChallenges = async () => {
 
     // Add new optional fields
     formData.append("hint", document.getElementById("challenge-hint").value);
-    
+
     // Handle deadline timezone properly - convert to Pakistan timezone before saving
     const deadlineInput = document.getElementById("challenge-deadline").value;
     if (deadlineInput) {
       // Convert the input datetime to a Date object
       const inputDate = new Date(deadlineInput);
-      
+
       // Create a formatter that will output the date in ISO format with Pakistan timezone offset
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Karachi',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        second: '2-digit',
-        hour12: false
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Karachi",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        second: "2-digit",
+        hour12: false,
       });
-      
+
       // Format the date and convert it to ISO format
       const parts = formatter.formatToParts(inputDate);
       const dateObj = {};
-      parts.forEach(part => {
-        if (part.type !== 'literal') {
+      parts.forEach((part) => {
+        if (part.type !== "literal") {
           dateObj[part.type] = part.value;
         }
       });
-      
+
       // Create a UTC ISO string but preserving the Pakistan time values
       const pkTime = `${dateObj.year}-${dateObj.month}-${dateObj.day}T${dateObj.hour}:${dateObj.minute}:${dateObj.second}.000Z`;
       formData.append("deadline", pkTime);
     } else {
       formData.append("deadline", "");
     }
-    
+
     formData.append("author", document.getElementById("challenge-author").value);
 
     // Add fileUrl if provided
@@ -277,26 +277,26 @@ const editChallenge = async (challengeId) => {
     if (challenge.deadline) {
       // Convert UTC date to Pakistan timezone for display in the form
       const date = new Date(challenge.deadline);
-      
+
       // Use formatter to get date parts in Pakistan timezone
-      const formatter = new Intl.DateTimeFormat('en-US', {
-        timeZone: 'Asia/Karachi',
-        year: 'numeric',
-        month: '2-digit',
-        day: '2-digit',
-        hour: '2-digit',
-        minute: '2-digit',
-        hour12: false
+      const formatter = new Intl.DateTimeFormat("en-US", {
+        timeZone: "Asia/Karachi",
+        year: "numeric",
+        month: "2-digit",
+        day: "2-digit",
+        hour: "2-digit",
+        minute: "2-digit",
+        hour12: false,
       });
-      
+
       const parts = formatter.formatToParts(date);
       const dateObj = {};
-      parts.forEach(part => {
-        if (part.type !== 'literal') {
+      parts.forEach((part) => {
+        if (part.type !== "literal") {
           dateObj[part.type] = part.value;
         }
       });
-      
+
       // Format for datetime-local input (YYYY-MM-DDThh:mm)
       const formattedDate = `${dateObj.year}-${dateObj.month}-${dateObj.day}T${dateObj.hour}:${dateObj.minute}`;
       document.getElementById("challenge-deadline").value = formattedDate;

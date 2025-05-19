@@ -11,13 +11,13 @@ const fs = require("fs");
 const checkNotLeaderboardMode = async (req, res, next) => {
   try {
     const siteConfig = await SiteConfig.getConfig();
-    
+
     if (siteConfig.siteMode === "leaderboard_only") {
-      return res.status(403).json({ 
-        message: "Challenge submissions are disabled in leaderboard mode" 
+      return res.status(403).json({
+        message: "Challenge submissions are disabled in leaderboard mode",
       });
     }
-    
+
     next();
   } catch (error) {
     console.error("Site mode check error:", error);
@@ -30,13 +30,13 @@ router.get("/", isAuthenticated, isNotBanned, async (req, res) => {
   try {
     // Check site mode first
     const siteConfig = await SiteConfig.getConfig();
-    
+
     if (siteConfig.siteMode === "leaderboard_only") {
-      return res.status(403).json({ 
-        message: "Challenges are not available in leaderboard mode" 
+      return res.status(403).json({
+        message: "Challenges are not available in leaderboard mode",
       });
     }
-    
+
     // Get challenges but don't return the flag field
     const challenges = await Challenge.find().select("-flag");
     res.json({ challenges });
@@ -56,7 +56,7 @@ router.get("/download/:id", isAuthenticated, isNotBanned, checkNotLeaderboardMod
     }
 
     const filePath = path.join(__dirname, "..", challenge.file.path);
-    
+
     // Check if file exists before trying to download
     if (!fs.existsSync(filePath)) {
       console.error(`File not found at path: ${filePath}`);
@@ -67,23 +67,27 @@ router.get("/download/:id", isAuthenticated, isNotBanned, checkNotLeaderboardMod
     console.log(`Sending file: ${filePath} as ${challenge.file.originalName}`);
 
     // Set content disposition explicitly for better download handling
-    res.setHeader('Content-Disposition', `attachment; filename="${challenge.file.originalName}"`);
-    res.setHeader('Content-Type', 'application/octet-stream');
-    
+    res.setHeader("Content-Disposition", `attachment; filename="${challenge.file.originalName}"`);
+    res.setHeader("Content-Type", "application/octet-stream");
+
     // Send file with explicit options
-    res.sendFile(filePath, {
-      headers: {
-        'Content-Disposition': `attachment; filename="${challenge.file.originalName}"`
-      }
-    }, (err) => {
-      if (err) {
-        console.error('Error sending file:', err);
-        // Don't try to send another response if headers are already sent
-        if (!res.headersSent) {
-          res.status(500).json({ message: "Error sending file" });
+    res.sendFile(
+      filePath,
+      {
+        headers: {
+          "Content-Disposition": `attachment; filename="${challenge.file.originalName}"`,
+        },
+      },
+      (err) => {
+        if (err) {
+          console.error("Error sending file:", err);
+          // Don't try to send another response if headers are already sent
+          if (!res.headersSent) {
+            res.status(500).json({ message: "Error sending file" });
+          }
         }
       }
-    });
+    );
   } catch (error) {
     console.error("Download error:", error);
     res.status(500).json({ message: "Server error" });

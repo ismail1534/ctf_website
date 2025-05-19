@@ -52,42 +52,90 @@ const addFooterIfNeeded = (path) => {
   document.body.appendChild(footer);
 };
 
+// Handle route changes
+const handleRouteChange = async () => {
+  const path = window.location.hash.substring(1) || "/";
+
+  // Clear previous content
+  app.innerHTML = "";
+
+  // Update navigation
+  updateNavigation();
+
+  // Route handling
+  try {
+    if (path === "/" || path === "/home") {
+      renderHome();
+    } else if (path === "/login") {
+      renderLogin();
+    } else if (path === "/register") {
+      renderRegister();
+    } else if (path === "/dashboard") {
+      await checkAuth();
+      renderDashboard();
+    } else if (path === "/leaderboard") {
+      renderLeaderboard();
+    } else if (path === "/admin/login") {
+      renderAdminLogin();
+    } else if (path.startsWith("/admin")) {
+      await checkAdminAuth();
+      renderAdminArea(path);
+    } else if (path === "/logout") {
+      await logout();
+      navigateTo("/");
+    } else {
+      renderNotFound();
+    }
+
+    // Add footer if needed for the current page
+    addFooterIfNeeded(path);
+  } catch (error) {
+    console.error("Route error:", error);
+    showAlert("Error loading page. Please try again.", "danger");
+  }
+};
+
 // Check if user is authenticated
 const checkAuth = async () => {
-  try {
-    const response = await fetch(API_BASE_URL + "/api/auth/status", {
-      credentials: "include",
-    });
-
-    if (!response.ok) {
-      throw new Error("Not authenticated");
+  if (!state.user) {
+    try {
+      const response = await fetch(API_BASE_URL + "/api/auth/me", {
+        credentials: "include",
+      });
+      if (response.ok) {
+        const data = await response.json();
+        state.user = data.user;
+      } else {
+        // Try to use localStorage data as fallback
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            console.log("Session not found, trying to re-authenticate with stored credentials");
+            const userData = JSON.parse(storedUser);
+            // Don't actually re-authenticate automatically for security reasons,
+            // but let the user know they need to login again
+            console.log("Authentication failed. Please log in again.");
+          } catch (error) {
+            console.error("Error parsing user from localStorage:", error);
+            localStorage.removeItem("user");
+          }
+        }
+        throw new Error("Not authenticated");
+      }
+    } catch (error) {
+      console.error("Auth error:", error);
+      navigateTo("/login");
+      throw error;
     }
-
-    const data = await response.json();
-    console.log("Session status:", data);
-
-    if (data.isAuthenticated && data.user) {
-      state.user = data.user;
-      localStorage.setItem("user", JSON.stringify(data.user));
-      return true;
-    } else {
-      state.user = null;
-      localStorage.removeItem("user");
-      return false;
-    }
-  } catch (error) {
-    console.error("Auth error:", error);
-    state.user = null;
-    localStorage.removeItem("user");
-    return false;
   }
 };
 
 // Check if user is admin
 const checkAdminAuth = async () => {
-  const isAuthenticated = await checkAuth();
-  if (!isAuthenticated || !state.user.isAdmin) {
-    navigateTo("/admin/login");
+  await checkAuth();
+
+  if (!state.user || !state.user.isAdmin) {
+    navigateTo("/");
     throw new Error("Not authorized as admin");
   }
 };
@@ -188,55 +236,8 @@ const renderNotFound = () => {
   `;
 };
 
-// Handle route changes
-const handleRouteChange = async () => {
-  const path = window.location.hash.substring(1) || "/";
-
-  // Clear previous content
-  app.innerHTML = "";
-
-  // Update navigation
-  updateNavigation();
-
-  // Route handling
-  try {
-    if (path === "/" || path === "/home") {
-      renderHome();
-    } else if (path === "/login") {
-      renderLogin();
-    } else if (path === "/register") {
-      renderRegister();
-    } else if (path === "/dashboard") {
-      const isAuthenticated = await checkAuth();
-      if (!isAuthenticated) {
-        navigateTo("/login");
-        return;
-      }
-      renderDashboard();
-    } else if (path === "/leaderboard") {
-      renderLeaderboard();
-    } else if (path === "/admin/login") {
-      renderAdminLogin();
-    } else if (path.startsWith("/admin")) {
-      await checkAdminAuth();
-      renderAdminArea(path);
-    } else if (path === "/logout") {
-      await logout();
-      navigateTo("/");
-    } else {
-      renderNotFound();
-    }
-
-    // Add footer if needed for the current page
-    addFooterIfNeeded(path);
-  } catch (error) {
-    console.error("Route error:", error);
-    showAlert("Error loading page. Please try again.", "danger");
-  }
-};
-
 // Initialize the application
-const init = async () => {
+const init = () => {
   // Check localStorage for user data
   const storedUser = localStorage.getItem("user");
   if (storedUser) {
@@ -249,8 +250,17 @@ const init = async () => {
     }
   }
 
-  // Verify session with server
-  await checkAuth();
+  // Debug session status
+  fetch(`${API_BASE_URL}/api/auth/status`, {
+    credentials: "include",
+  })
+    .then((response) => response.json())
+    .then((data) => {
+      console.log("Session status:", data);
+    })
+    .catch((error) => {
+      console.error("Session status check failed:", error);
+    });
 
   // Handle route changes
   window.addEventListener("hashchange", handleRouteChange);
@@ -258,6 +268,3 @@ const init = async () => {
   // Initial route handling
   handleRouteChange();
 };
-
-// Start the app
-document.addEventListener("DOMContentLoaded", init);
