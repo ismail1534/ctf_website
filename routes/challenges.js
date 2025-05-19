@@ -7,9 +7,36 @@ const { isAuthenticated, isNotBanned } = require("../middleware/auth");
 const path = require("path");
 const fs = require("fs");
 
+// Middleware to check if site is in leaderboard mode
+const checkNotLeaderboardMode = async (req, res, next) => {
+  try {
+    const siteConfig = await SiteConfig.getConfig();
+    
+    if (siteConfig.siteMode === "leaderboard_only") {
+      return res.status(403).json({ 
+        message: "Challenge submissions are disabled in leaderboard mode" 
+      });
+    }
+    
+    next();
+  } catch (error) {
+    console.error("Site mode check error:", error);
+    res.status(500).json({ message: "Server error" });
+  }
+};
+
 // Get all challenges
 router.get("/", isAuthenticated, isNotBanned, async (req, res) => {
   try {
+    // Check site mode first
+    const siteConfig = await SiteConfig.getConfig();
+    
+    if (siteConfig.siteMode === "leaderboard_only") {
+      return res.status(403).json({ 
+        message: "Challenges are not available in leaderboard mode" 
+      });
+    }
+    
     // Get challenges but don't return the flag field
     const challenges = await Challenge.find().select("-flag");
     res.json({ challenges });
@@ -20,7 +47,7 @@ router.get("/", isAuthenticated, isNotBanned, async (req, res) => {
 });
 
 // Download challenge file - improved version with better error handling
-router.get("/download/:id", isAuthenticated, isNotBanned, async (req, res) => {
+router.get("/download/:id", isAuthenticated, isNotBanned, checkNotLeaderboardMode, async (req, res) => {
   try {
     const challenge = await Challenge.findById(req.params.id);
 
@@ -64,7 +91,7 @@ router.get("/download/:id", isAuthenticated, isNotBanned, async (req, res) => {
 });
 
 // Submit flag for a challenge
-router.post("/submit/:id", isAuthenticated, isNotBanned, async (req, res) => {
+router.post("/submit/:id", isAuthenticated, isNotBanned, checkNotLeaderboardMode, async (req, res) => {
   try {
     const { flag } = req.body;
     const userId = req.session.userId;

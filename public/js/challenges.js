@@ -13,6 +13,28 @@ const renderDashboard = async () => {
     });
     const data = await response.json();
 
+    // Handle leaderboard mode error
+    if (!response.ok) {
+      if (response.status === 403 && data.message === "Challenges are not available in leaderboard mode") {
+        dashboardAlert.innerHTML = "Challenges are currently disabled. The site is in leaderboard-only mode.";
+        dashboardAlert.className = "alert alert-info";
+        // Add a link to the leaderboard
+        const leaderboardLink = document.createElement("a");
+        leaderboardLink.href = "#";
+        leaderboardLink.textContent = "View Leaderboard";
+        leaderboardLink.className = "btn btn-primary mt-3";
+        leaderboardLink.addEventListener("click", (e) => {
+          e.preventDefault();
+          navigateTo("leaderboard");
+        });
+        dashboardAlert.appendChild(document.createElement("br"));
+        dashboardAlert.appendChild(leaderboardLink);
+        return;
+      }
+
+      throw new Error(data.message || "Failed to load challenges");
+    }
+
     state.challenges = data.challenges;
 
     if (state.challenges.length === 0) {
@@ -52,13 +74,13 @@ const renderChallenges = () => {
     let deadlineDisplay = "";
     if (challenge.deadline) {
       const deadlineDate = new Date(challenge.deadline);
-      const options = { 
-        year: "numeric", 
-        month: "short", 
-        day: "numeric", 
-        hour: "2-digit", 
+      const options = {
+        year: "numeric",
+        month: "short",
+        day: "numeric",
+        hour: "2-digit",
         minute: "2-digit",
-        timeZone: "Asia/Karachi" // Pakistan timezone
+        timeZone: "Asia/Karachi", // Pakistan timezone
       };
       const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
       deadlineDisplay = `<div class="challenge-metadata"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
@@ -198,13 +220,13 @@ const openChallengeModal = (challengeId) => {
 
   if (challenge.deadline) {
     const deadlineDate = new Date(challenge.deadline);
-    const options = { 
-      year: "numeric", 
-      month: "short", 
-      day: "numeric", 
-      hour: "2-digit", 
+    const options = {
+      year: "numeric",
+      month: "short",
+      day: "numeric",
+      hour: "2-digit",
       minute: "2-digit",
-      timeZone: "Asia/Karachi" // Pakistan timezone
+      timeZone: "Asia/Karachi", // Pakistan timezone
     };
     const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
     metadataHTML += `<div class="metadata-item"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
@@ -366,8 +388,29 @@ const openChallengeModal = (challengeId) => {
         submitFlag.disabled = true;
         flagInput.disabled = true;
       } else {
-        flagResult.innerHTML = data.message;
-        flagResult.className = "alert alert-danger";
+        // Check for leaderboard mode error
+        if (response.status === 403 && data.message === "Challenge submissions are disabled in leaderboard mode") {
+          flagResult.innerHTML = "Flag submissions are currently disabled. The site is in leaderboard-only mode.";
+          flagResult.className = "alert alert-info";
+
+          // Disable submit button
+          submitFlag.disabled = true;
+
+          // Add a button to view the leaderboard
+          const leaderboardBtn = document.createElement("button");
+          leaderboardBtn.className = "btn btn-primary mt-2";
+          leaderboardBtn.textContent = "View Leaderboard";
+          leaderboardBtn.addEventListener("click", () => {
+            document.body.removeChild(modal);
+            navigateTo("leaderboard");
+          });
+
+          flagResult.appendChild(document.createElement("br"));
+          flagResult.appendChild(leaderboardBtn);
+        } else {
+          flagResult.innerHTML = data.message;
+          flagResult.className = "alert alert-danger";
+        }
       }
     } catch (error) {
       console.error("Flag submission error:", error);
