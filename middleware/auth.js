@@ -74,6 +74,11 @@ exports.checkSiteMode = async (req, res, next) => {
 
     // If we're in leaderboard only mode, only allow access to leaderboard, login and registration
     if (siteConfig.siteMode === "leaderboard_only") {
+      // Allow all API requests to pass through
+      if (req.path.startsWith("/api/")) {
+        return next();
+      }
+
       const allowedPaths = ["/leaderboard", "/login", "/register", "/"];
 
       if (!allowedPaths.includes(req.path) && !req.path.startsWith("/public")) {
