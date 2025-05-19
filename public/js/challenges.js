@@ -25,7 +25,7 @@ const renderDashboard = async () => {
         leaderboardLink.className = "btn btn-primary mt-3";
         leaderboardLink.addEventListener("click", (e) => {
           e.preventDefault();
-          navigateTo("leaderboard");
+          navigateTo("/leaderboard");
         });
         dashboardAlert.appendChild(document.createElement("br"));
         dashboardAlert.appendChild(leaderboardLink);
@@ -402,7 +402,7 @@ const openChallengeModal = (challengeId) => {
           leaderboardBtn.textContent = "View Leaderboard";
           leaderboardBtn.addEventListener("click", () => {
             document.body.removeChild(modal);
-            navigateTo("leaderboard");
+            navigateTo("/leaderboard");
           });
 
           flagResult.appendChild(document.createElement("br"));
