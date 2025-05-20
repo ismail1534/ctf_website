@@ -14,6 +14,9 @@ const renderLogin = () => {
     const password = document.getElementById("password").value;
 
     try {
+      loginAlert.innerHTML = "Logging in...";
+      loginAlert.className = "alert alert-info";
+
       const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
         method: "POST",
         headers: {
@@ -31,6 +34,13 @@ const renderLogin = () => {
         localStorage.setItem("user", JSON.stringify(data.user));
         loginAlert.innerHTML = data.message;
         loginAlert.className = "alert alert-success";
+
+        // Check if session is active
+        const statusCheck = await fetch(`${API_BASE_URL}/api/auth/status`, {
+          credentials: "include",
+        });
+
+        console.log("Session status check after login:", await statusCheck.json());
 
         // Redirect to dashboard after login
         setTimeout(() => {
@@ -152,6 +162,3 @@ const renderAdminLogin = () => {
     }
   });
 };
-
-// Call init to initialize the app
-document.addEventListener("DOMContentLoaded", init);

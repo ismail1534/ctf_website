@@ -75,7 +75,7 @@ app.use(
     }),
     cookie: {
       secure: process.env.NODE_ENV === "production", // Only use secure in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use lax in development
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use none for cross-site requests in production
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       domain: undefined, // Don't set a specific domain

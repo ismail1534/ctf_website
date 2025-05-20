@@ -101,20 +101,25 @@ const checkAuth = async () => {
     try {
       const response = await fetch(API_BASE_URL + "/api/auth/me", {
         credentials: "include",
+        headers: {
+          "Content-Type": "application/json",
+        },
       });
       if (response.ok) {
         const data = await response.json();
         state.user = data.user;
+        // Store user in localStorage for fallback
+        localStorage.setItem("user", JSON.stringify(data.user));
       } else {
         // Try to use localStorage data as fallback
         const storedUser = localStorage.getItem("user");
         if (storedUser) {
           try {
-            console.log("Session not found, trying to re-authenticate with stored credentials");
+            console.log("Session not found, trying to use stored credentials");
+            // Try a re-authentication request using stored data
             const userData = JSON.parse(storedUser);
-            // Don't actually re-authenticate automatically for security reasons,
-            // but let the user know they need to login again
-            console.log("Authentication failed. Please log in again.");
+            navigateTo("/login");
+            throw new Error("Session expired. Please log in again.");
           } catch (error) {
             console.error("Error parsing user from localStorage:", error);
             localStorage.removeItem("user");
@@ -143,14 +148,31 @@ const checkAdminAuth = async () => {
 // Logout
 const logout = async () => {
   try {
-    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+    const response = await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: "GET",
       credentials: "include",
+      headers: {
+        "Content-Type": "application/json",
+      },
     });
+
+    if (response.ok) {
+      console.log("Logout successful");
+    } else {
+      console.error("Logout failed:", await response.json());
+    }
+
+    // Always clear local state regardless of server response
     state.user = null;
-    // Clear user data from localStorage
     localStorage.removeItem("user");
+
+    // Navigate to home page after logout
+    navigateTo("/");
   } catch (error) {
     console.error("Logout error:", error);
+    // Still clear local state on error
+    state.user = null;
+    localStorage.removeItem("user");
   }
 };
 
@@ -237,30 +259,61 @@ const renderNotFound = () => {
 };
 
 // Initialize the application
-const init = () => {
-  // Check localStorage for user data
-  const storedUser = localStorage.getItem("user");
-  if (storedUser) {
-    try {
-      state.user = JSON.parse(storedUser);
-      console.log("User loaded from localStorage:", state.user.username);
-    } catch (error) {
-      console.error("Error parsing user from localStorage:", error);
-      localStorage.removeItem("user");
+const init = async () => {
+  // Try to get session status first
+  try {
+    const statusResponse = await fetch(`${API_BASE_URL}/api/auth/status`, {
+      credentials: "include",
+    });
+
+    if (statusResponse.ok) {
+      const statusData = await statusResponse.json();
+      console.log("Session status on init:", statusData);
+
+      // If we have an active server-side session, use it
+      if (statusData.hasSession && statusData.user) {
+        console.log("Active session found, trying to load user data");
+
+        // Fetch full user data
+        const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
+          credentials: "include",
+        });
+
+        if (userResponse.ok) {
+          const userData = await userResponse.json();
+          state.user = userData.user;
+          localStorage.setItem("user", JSON.stringify(userData.user));
+          console.log("User data loaded from session:", state.user.username);
+        }
+      } else {
+        // Fallback to localStorage if no active session
+        const storedUser = localStorage.getItem("user");
+        if (storedUser) {
+          try {
+            state.user = JSON.parse(storedUser);
+            console.log("User loaded from localStorage:", state.user.username);
+          } catch (error) {
+            console.error("Error parsing user from localStorage:", error);
+            localStorage.removeItem("user");
+          }
+        }
+      }
+    }
+  } catch (error) {
+    console.error("Error checking session status:", error);
+
+    // Fallback to localStorage
+    const storedUser = localStorage.getItem("user");
+    if (storedUser) {
+      try {
+        state.user = JSON.parse(storedUser);
+        console.log("User loaded from localStorage:", state.user.username);
+      } catch (error) {
+        console.error("Error parsing user from localStorage:", error);
+        localStorage.removeItem("user");
+      }
     }
   }
-
-  // Debug session status
-  fetch(`${API_BASE_URL}/api/auth/status`, {
-    credentials: "include",
-  })
-    .then((response) => response.json())
-    .then((data) => {
-      console.log("Session status:", data);
-    })
-    .catch((error) => {
-      console.error("Session status check failed:", error);
-    });
 
   // Handle route changes
   window.addEventListener("hashchange", handleRouteChange);
