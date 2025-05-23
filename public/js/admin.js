@@ -103,7 +103,7 @@ const renderAdminChallenges = async () => {
       const inputDate = new Date(deadlineInput);
 
       // Add 5 hours to the deadline automatically
-      inputDate.setHours(inputDate.getHours() + 5);
+      inputDate.setHours(inputDate.getHours() - 5);
 
       // Create a formatter that will output the date in ISO format with Pakistan timezone offset
       const formatter = new Intl.DateTimeFormat("en-US", {
