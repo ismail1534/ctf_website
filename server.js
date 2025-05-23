@@ -27,6 +27,9 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: function (origin, callback) {
+      // Always log the request origin for debugging
+      console.log("Request origin:", origin);
+      
       // Allow all origins in development
       if (process.env.NODE_ENV !== "production") {
         return callback(null, true);
@@ -36,7 +39,7 @@ app.use(
         process.env.FRONTEND_URL, 
         "http://localhost:3000", 
         "https://ctf-website-mv21.vercel.app",
-        process.env.KOYEB_URL // New Koyeb URL will be set as environment variable
+        process.env.KOYEB_URL
       ].filter(Boolean); // Remove any undefined values
 
       // Allow requests with no origin (like mobile apps, curl, postman)
@@ -50,8 +53,14 @@ app.use(
         return callback(null, true);
       }
 
-      console.log("Origin being checked:", origin);
-      return callback(null, true); // Allow all origins for troubleshooting
+      // In production, always accept requests from Vercel frontend for now
+      if (origin === "https://ctf-website-mv21.vercel.app") {
+        console.log("Allowing Vercel frontend:", origin);
+        return callback(null, true);
+      }
+
+      console.log("Origin not allowed:", origin);
+      return callback(new Error("CORS not allowed"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
@@ -59,6 +68,16 @@ app.use(
     exposedHeaders: ["set-cookie"],
   })
 );
+
+// Handle preflight OPTIONS requests
+app.options('*', (req, res) => {
+  // Set CORS headers explicitly for preflight requests
+  res.header('Access-Control-Allow-Origin', 'https://ctf-website-mv21.vercel.app');
+  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
+  res.header('Access-Control-Allow-Credentials', 'true');
+  res.status(204).end();
+});
 
 // Add request logging middleware
 app.use((req, res, next) => {
