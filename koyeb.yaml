@@ -18,7 +18,7 @@ services:
       - key: FRONTEND_URL
         value: "https://ctf-website-mv21.vercel.app"
       - key: KOYEB_URL
-        value: "REPLACE_WITH_YOUR_KOYEB_URL"
+        value: "https://vivid-baboon-ismail1534-c0b1a753.koyeb.app"
     ports:
       - port: 8080
         protocol: http

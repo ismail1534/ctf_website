@@ -4,7 +4,7 @@ const API_BASE_URL =
   window.location.hostname === "localhost"
     ? "http://localhost:10000"
     : window.location.hostname.includes("koyeb")
-    ? "https://YOUR-APP-NAME.koyeb.app" // Replace with your Koyeb app URL when deployed
+    ? "https://vivid-baboon-ismail1534-c0b1a753.koyeb.app" // Koyeb URL
     : "https://ctf-website-backend-e5la.onrender.com"; // Fallback to the original Render URL
 
 console.log("Using API base URL:", API_BASE_URL);
