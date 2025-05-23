@@ -16,6 +16,11 @@ const ChallengeSchema = new mongoose.Schema({
     enum: ["OSINT", "Forensics", "Cryptography", "Web", "Reverse Engineering"],
     default: "Forensics",
   },
+  isWeekly: {
+    type: Boolean,
+    default: false,
+    description: "If true, this challenge will appear in the weekly leaderboard"
+  },
   flag: {
     type: String,
     required: true,

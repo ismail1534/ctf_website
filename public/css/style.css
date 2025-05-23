@@ -674,30 +674,34 @@ ul {
   padding: 8px 16px;
   border: none;
   border-radius: 4px;
-  background-color: #f0f0f0;
+  background-color: var(--medium-blue);
+  color: var(--text-primary);
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition);
+  border: 1px solid var(--light-blue);
 }
 
 .category-tab.active {
-  background-color: #4c8bf5;
-  color: white;
+  background-color: rgba(100, 255, 218, 0.1);
+  color: var(--neon-blue);
+  border: 1px solid var(--neon-blue);
 }
 
 .category-tab:hover {
-  background-color: #e0e0e0;
+  background-color: rgba(100, 255, 218, 0.05);
+  transform: translateY(-2px);
 }
 
 .category-tab.active:hover {
-  background-color: #3a7be0;
+  background-color: rgba(100, 255, 218, 0.15);
 }
 
 .challenge-count {
   display: inline-block;
   margin-left: 5px;
   padding: 2px 6px;
-  background-color: rgba(255, 255, 255, 0.2);
+  background-color: rgba(35, 53, 84, 0.7);
   border-radius: 10px;
   font-size: 0.8em;
 }
@@ -722,25 +726,28 @@ ul {
 
 .leaderboard-tab {
   padding: 10px 20px;
-  background-color: #f0f0f0;
-  border: none;
+  background-color: var(--medium-blue);
+  color: var(--text-primary);
+  border: 1px solid var(--light-blue);
   border-radius: 4px;
   cursor: pointer;
   font-weight: 500;
-  transition: all 0.3s ease;
+  transition: var(--transition);
 }
 
 .leaderboard-tab.active {
-  background-color: #4c8bf5;
-  color: white;
+  background-color: rgba(100, 255, 218, 0.1);
+  color: var(--neon-blue);
+  border: 1px solid var(--neon-blue);
 }
 
 .leaderboard-tab:hover {
-  background-color: #e0e0e0;
+  background-color: rgba(100, 255, 218, 0.05);
+  transform: translateY(-2px);
 }
 
 .leaderboard-tab.active:hover {
-  background-color: #3a7be0;
+  background-color: rgba(100, 255, 218, 0.15);
 }
 
 .leaderboard-section {
@@ -749,4 +756,56 @@ ul {
 
 .leaderboard-section.active {
   display: block;
+}
+
+/* Checkbox styling */
+.checkbox-wrapper {
+  display: flex;
+  align-items: center;
+  margin-bottom: 8px;
+}
+
+.form-check-input {
+  margin-right: 8px;
+  width: 18px;
+  height: 18px;
+  cursor: pointer;
+  accent-color: var(--neon-blue);
+  background-color: var(--dark-blue);
+  border: 1px solid var(--light-blue);
+}
+
+.form-check-label {
+  cursor: pointer;
+  color: var(--text-primary);
+  font-weight: normal;
+}
+
+/* Badge styling */
+.badge {
+  display: inline-block;
+  padding: 5px 8px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+  text-align: center;
+}
+
+.badge-primary {
+  background-color: rgba(100, 255, 218, 0.2);
+  color: var(--neon-blue);
+  border: 1px solid var(--neon-blue);
+}
+
+.badge-secondary {
+  background-color: rgba(35, 53, 84, 0.5);
+  color: var(--text-secondary);
+  border: 1px solid var(--light-blue);
+}
+
+.section-description {
+  color: var(--text-secondary);
+  font-size: 0.9rem;
+  margin-bottom: 1rem;
+  font-style: italic;
 }

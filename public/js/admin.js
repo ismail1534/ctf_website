@@ -79,6 +79,7 @@ const renderAdminChallenges = async () => {
     // Get form data
     const challengeId = document.getElementById("challenge-id").value;
     const fileUrl = document.getElementById("challenge-file-url").value.trim();
+    const isWeekly = document.getElementById("challenge-weekly").checked;
 
     // Create FormData object
     const formData = new FormData();
@@ -88,6 +89,7 @@ const renderAdminChallenges = async () => {
     formData.append("description", document.getElementById("challenge-description").value);
     formData.append("category", document.getElementById("challenge-category").value);
     formData.append("flag", document.getElementById("challenge-flag").value);
+    formData.append("isWeekly", isWeekly);
 
     // Add new optional fields
     formData.append("hint", document.getElementById("challenge-hint").value);
@@ -194,7 +196,7 @@ const renderChallengesTable = (challenges) => {
   if (!challenges || challenges.length === 0) {
     // Handle empty challenges
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="6">No challenges found</td>`;
+    row.innerHTML = `<td colspan="7">No challenges found</td>`;
     challengesBody.appendChild(row);
     return;
   }
@@ -210,11 +212,15 @@ const renderChallengesTable = (challenges) => {
       fileDisplay = challenge.file.originalName;
     }
 
+    // Determine challenge type
+    const typeDisplay = challenge.isWeekly ? '<span class="badge badge-primary">Weekly</span>' : '<span class="badge badge-secondary">Regular</span>';
+
     row.innerHTML = `
       <td>${challenge.title}</td>
       <td>${challenge.description.substring(0, 50)}${challenge.description.length > 50 ? "..." : ""}</td>
       <td>${challenge.category || "Uncategorized"}</td>
       <td>${challenge.flag}</td>
+      <td>${typeDisplay}</td>
       <td>${fileDisplay}</td>
       <td>
         <button class="btn btn-primary edit-challenge" data-id="${challenge._id}">Edit</button>
@@ -271,6 +277,7 @@ const editChallenge = async (challengeId) => {
     document.getElementById("challenge-description").value = challenge.description;
     document.getElementById("challenge-category").value = challenge.category || "Forensics";
     document.getElementById("challenge-flag").value = challenge.flag;
+    document.getElementById("challenge-weekly").checked = challenge.isWeekly || false;
 
     // Populate new fields
     document.getElementById("challenge-hint").value = challenge.hint || "";
