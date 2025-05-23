@@ -445,7 +445,7 @@ const openChallengeModal = (challengeId) => {
       const data = await response.json();
 
       if (response.ok) {
-        
+        flagResult.innerHTML = `${data.message} Your submission index: ${data.submissionIndex}`;
         flagResult.className = "alert alert-success";
 
         // Disable submit button after successful submission
