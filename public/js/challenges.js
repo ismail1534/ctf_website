@@ -54,66 +54,130 @@ const renderDashboard = async () => {
 
 // Render challenges in the dashboard
 const renderChallenges = () => {
-  const challengeList = document.getElementById("challenge-list");
-  challengeList.innerHTML = "";
+  // Get elements
+  const categoryTabs = document.getElementById("category-tabs");
+  const challengeCategories = document.getElementById("challenge-categories");
 
+  // Reset content
+  categoryTabs.innerHTML = "";
+  challengeCategories.innerHTML = "";
+
+  // Group challenges by category
+  const categories = {};
+
+  // Initialize all possible categories first
+  ["OSINT", "Forensics", "Cryptography", "Web", "Reverse Engineering"].forEach((cat) => {
+    categories[cat] = [];
+  });
+
+  // Group challenges
   state.challenges.forEach((challenge) => {
-    const challengeElement = document.createElement("div");
-    challengeElement.className = "challenge-item";
-
-    // Create solved badge if the challenge is already solved
-    const isSolved = state.user && state.user.solvedChallenges && state.user.solvedChallenges.includes(challenge._id);
-
-    const solvedBadge = isSolved ? '<span class="solved-badge"><i class="fas fa-check-circle"></i> Solved</span>' : "";
-
-    // Determine if challenge has a file
-    const hasFile = challenge.fileUrl || (challenge.file && challenge.file.path);
-    const fileIndicator = hasFile ? '<span class="file-indicator"><i class="fas fa-file-alt"></i> Has File</span>' : "";
-
-    // Format deadline if it exists
-    let deadlineDisplay = "";
-    if (challenge.deadline) {
-      const deadlineDate = new Date(challenge.deadline);
-      const options = {
-        year: "numeric",
-        month: "short",
-        day: "numeric",
-        hour: "2-digit",
-        minute: "2-digit",
-        timeZone: "Asia/Karachi", // Pakistan timezone
-      };
-      const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
-      deadlineDisplay = `<div class="challenge-metadata"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
+    const category = challenge.category || "Forensics"; // Default to Forensics if no category
+    if (!categories[category]) {
+      categories[category] = []; // Create category if it doesn't exist yet
     }
+    categories[category].push(challenge);
+  });
 
-    // Show author if it exists
-    let authorDisplay = "";
-    if (challenge.author) {
-      authorDisplay = `<div class="challenge-metadata"><i class="fas fa-user-edit"></i> Author: ${challenge.author}</div>`;
-    }
+  // Create tabs for each category
+  let isFirst = true;
+  Object.keys(categories).forEach((category) => {
+    // Only show categories that have challenges
+    if (categories[category].length === 0) return;
 
-    challengeElement.innerHTML = `
-      ${solvedBadge}
-      <h3><i class="fas fa-puzzle-piece"></i> ${challenge.title}</h3>
-      ${fileIndicator}
-      <p>${challenge.description.substring(0, 100)}${challenge.description.length > 100 ? "..." : ""}</p>
-      ${deadlineDisplay}
-      ${authorDisplay}
-      <div class="challenge-buttons">
-        <button class="btn btn-primary view-challenge" data-id="${challenge._id}">
-          <i class="fas fa-eye"></i> View Challenge
-        </button>
-        ${
-          challenge.hint
-            ? `<button class="btn btn-info show-hint" data-id="${challenge._id}">
-          <i class="fas fa-lightbulb"></i> Hint
-        </button>`
-            : ""
-        }
-      </div>
-    `;
+    // Create tab button
+    const tabButton = document.createElement("button");
+    tabButton.className = `category-tab ${isFirst ? "active" : ""}`;
+    tabButton.dataset.category = category;
+    tabButton.innerHTML = `${category} <span class="challenge-count">${categories[category].length}</span>`;
+    categoryTabs.appendChild(tabButton);
 
-    challengeList.appendChild(challengeElement);
+    // Create category section
+    const categorySection = document.createElement("div");
+    categorySection.className = `challenge-list ${isFirst ? "active" : ""}`;
+    categorySection.id = `category-${category.toLowerCase().replace(/\s+/g, "-")}`;
+
+    // Add challenges to the category section
+    categories[category].forEach((challenge) => {
+      const challengeElement = document.createElement("div");
+      challengeElement.className = "challenge-item";
+
+      // Create solved badge if the challenge is already solved
+      const isSolved = state.user && state.user.solvedChallenges && state.user.solvedChallenges.includes(challenge._id);
+
+      const solvedBadge = isSolved ? '<span class="solved-badge"><i class="fas fa-check-circle"></i> Solved</span>' : "";
+
+      // Determine if challenge has a file
+      const hasFile = challenge.fileUrl || (challenge.file && challenge.file.path);
+      const fileIndicator = hasFile ? '<span class="file-indicator"><i class="fas fa-file-alt"></i> Has File</span>' : "";
+
+      // Format deadline if it exists
+      let deadlineDisplay = "";
+      if (challenge.deadline) {
+        const deadlineDate = new Date(challenge.deadline);
+        const options = {
+          year: "numeric",
+          month: "short",
+          day: "numeric",
+          hour: "2-digit",
+          minute: "2-digit",
+          timeZone: "Asia/Karachi", // Pakistan timezone
+        };
+        const formattedDeadline = deadlineDate.toLocaleDateString("en-US", options);
+        deadlineDisplay = `<div class="challenge-metadata"><i class="fas fa-clock"></i> Deadline: ${formattedDeadline}</div>`;
+      }
+
+      // Show author if it exists
+      let authorDisplay = "";
+      if (challenge.author) {
+        authorDisplay = `<div class="challenge-metadata"><i class="fas fa-user-edit"></i> Author: ${challenge.author}</div>`;
+      }
+
+      challengeElement.innerHTML = `
+        ${solvedBadge}
+        <h3><i class="fas fa-puzzle-piece"></i> ${challenge.title}</h3>
+        ${fileIndicator}
+        <p>${challenge.description.substring(0, 100)}${challenge.description.length > 100 ? "..." : ""}</p>
+        ${deadlineDisplay}
+        ${authorDisplay}
+        <div class="challenge-buttons">
+          <button class="btn btn-primary view-challenge" data-id="${challenge._id}">
+            <i class="fas fa-eye"></i> View Challenge
+          </button>
+          ${
+            challenge.hint
+              ? `<button class="btn btn-info show-hint" data-id="${challenge._id}">
+            <i class="fas fa-lightbulb"></i> Hint
+          </button>`
+              : ""
+          }
+        </div>
+      `;
+
+      categorySection.appendChild(challengeElement);
+    });
+
+    // Add the category section to the main container
+    challengeCategories.appendChild(categorySection);
+
+    // Set first category as default
+    isFirst = false;
+  });
+
+  // Add event listeners for category tabs
+  document.querySelectorAll(".category-tab").forEach((tab) => {
+    tab.addEventListener("click", () => {
+      // Remove active class from all tabs and sections
+      document.querySelectorAll(".category-tab").forEach((t) => t.classList.remove("active"));
+      document.querySelectorAll(".challenge-list").forEach((s) => s.classList.remove("active"));
+
+      // Add active class to the clicked tab
+      tab.classList.add("active");
+
+      // Show the corresponding category section
+      const categoryId = `category-${tab.dataset.category.toLowerCase().replace(/\s+/g, "-")}`;
+      document.getElementById(categoryId).classList.add("active");
+    });
   });
 
   // Add event listeners to challenge view buttons

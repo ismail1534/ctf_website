@@ -3,7 +3,7 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <title>FORENSICS</title>
+    <title>TRUE PLAYERS</title>
     <!-- Favicon -->
     <link rel="icon" type="image/png" href="./favicon.png" />
     <link rel="shortcut icon" type="image/png" href="./images/favicon.png" />
@@ -13,7 +13,7 @@
   </head>
   <body>
     <nav class="navbar">
-      <h1><i class="fas fa-flag"></i> FORENSICS</h1>
+      <h1><i class="fas fa-flag"></i> TRUE PLAYERS</h1>
       <ul id="nav-links">
         <!-- Navigation links will be inserted here dynamically by JavaScript -->
       </ul>
@@ -28,7 +28,7 @@
     <!-- Home template -->
     <template id="home-template">
       <div class="card">
-        <h2>Welcome to Forensics Website</h2>
+        <h2>Welcome to True Players</h2>
         <p>Note: The website is still under development so please ignore any bugs 😊</p>
         <div id="site-status" class="alert"></div>
       </div>
@@ -52,7 +52,6 @@
         </form>
         <p>Don't have an account? <a href="#/register">Register</a></p>
       </div>
-      <p>Note: The Process can take upto 50 seconds. Please wait patiently!</p>
     </template>
 
     <!-- Register template -->
@@ -81,15 +80,17 @@
         </form>
         <p>Already have an account? <a href="#/login">Login</a></p>
       </div>
-      <p>Note: The Process can take upto 50 seconds. Please wait patiently!</p>
     </template>
 
     <!-- Dashboard template -->
     <template id="dashboard-template">
       <h2>Challenges</h2>
       <div id="dashboard-alert"></div>
-      <div class="challenge-list" id="challenge-list">
-        <!-- Challenges will be inserted here dynamically -->
+      <div class="category-tabs" id="category-tabs">
+        <!-- Category tabs will be inserted here dynamically -->
+      </div>
+      <div class="challenge-categories" id="challenge-categories">
+        <!-- Challenge categories will be inserted here dynamically -->
       </div>
     </template>
 
@@ -120,18 +121,43 @@
     <template id="leaderboard-template">
       <h2>Leaderboard</h2>
       <div id="leaderboard-alert"></div>
-      <table class="leaderboard">
-        <thead>
-          <tr>
-            <th>Rank</th>
-            <th>Username</th>
-            <th>Challenges Solved</th>
-          </tr>
-        </thead>
-        <tbody id="leaderboard-body">
-          <!-- Leaderboard data will be inserted here dynamically -->
-        </tbody>
-      </table>
+
+      <div class="leaderboard-tabs">
+        <button id="weekly-tab" class="leaderboard-tab active">Weekly</button>
+        <button id="all-time-tab" class="leaderboard-tab">All-Time</button>
+      </div>
+
+      <div id="weekly-leaderboard" class="leaderboard-section active">
+        <h3>Weekly Top Players</h3>
+        <table class="leaderboard">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Username</th>
+              <th>Challenges Solved</th>
+            </tr>
+          </thead>
+          <tbody id="weekly-leaderboard-body">
+            <!-- Weekly leaderboard data will be inserted here dynamically -->
+          </tbody>
+        </table>
+      </div>
+
+      <div id="all-time-leaderboard" class="leaderboard-section">
+        <h3>All-Time Rankings</h3>
+        <table class="leaderboard">
+          <thead>
+            <tr>
+              <th>Rank</th>
+              <th>Username</th>
+              <th>Challenges Solved</th>
+            </tr>
+          </thead>
+          <tbody id="all-time-leaderboard-body">
+            <!-- All-time leaderboard data will be inserted here dynamically -->
+          </tbody>
+        </table>
+      </div>
     </template>
 
     <!-- Admin login template -->
@@ -188,6 +214,16 @@
             <textarea id="challenge-description" class="form-control" rows="4" required></textarea>
           </div>
           <div class="form-group">
+            <label for="challenge-category">Category</label>
+            <select id="challenge-category" class="form-control" required>
+              <option value="OSINT">OSINT</option>
+              <option value="Forensics">Forensics</option>
+              <option value="Cryptography">Cryptography</option>
+              <option value="Web">Web</option>
+              <option value="Reverse Engineering">Reverse Engineering</option>
+            </select>
+          </div>
+          <div class="form-group">
             <label for="challenge-flag">Flag</label>
             <input type="text" id="challenge-flag" class="form-control" required />
           </div>
@@ -224,6 +260,7 @@
           <tr>
             <th>Title</th>
             <th>Description</th>
+            <th>Category</th>
             <th>Flag</th>
             <th>File</th>
             <th>Actions</th>

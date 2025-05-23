@@ -86,6 +86,7 @@ const renderAdminChallenges = async () => {
     // Add the required fields with correct names
     formData.append("title", document.getElementById("challenge-title").value);
     formData.append("description", document.getElementById("challenge-description").value);
+    formData.append("category", document.getElementById("challenge-category").value);
     formData.append("flag", document.getElementById("challenge-flag").value);
 
     // Add new optional fields
@@ -193,7 +194,7 @@ const renderChallengesTable = (challenges) => {
   if (!challenges || challenges.length === 0) {
     // Handle empty challenges
     const row = document.createElement("tr");
-    row.innerHTML = `<td colspan="5">No challenges found</td>`;
+    row.innerHTML = `<td colspan="6">No challenges found</td>`;
     challengesBody.appendChild(row);
     return;
   }
@@ -212,6 +213,7 @@ const renderChallengesTable = (challenges) => {
     row.innerHTML = `
       <td>${challenge.title}</td>
       <td>${challenge.description.substring(0, 50)}${challenge.description.length > 50 ? "..." : ""}</td>
+      <td>${challenge.category || "Uncategorized"}</td>
       <td>${challenge.flag}</td>
       <td>${fileDisplay}</td>
       <td>
@@ -267,6 +269,7 @@ const editChallenge = async (challengeId) => {
     document.getElementById("challenge-id").value = challenge._id;
     document.getElementById("challenge-title").value = challenge.title;
     document.getElementById("challenge-description").value = challenge.description;
+    document.getElementById("challenge-category").value = challenge.category || "Forensics";
     document.getElementById("challenge-flag").value = challenge.flag;
 
     // Populate new fields

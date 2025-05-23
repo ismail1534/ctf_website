@@ -3,29 +3,60 @@ const renderLeaderboard = async () => {
   state.currentPage = "leaderboard";
   app.appendChild(templates.leaderboard.content.cloneNode(true));
 
-  const leaderboardBody = document.getElementById("leaderboard-body");
   const leaderboardAlert = document.getElementById("leaderboard-alert");
 
-  // Load leaderboard data
+  // Setup tab switching
+  const weeklyTab = document.getElementById("weekly-tab");
+  const allTimeTab = document.getElementById("all-time-tab");
+  const weeklyLeaderboard = document.getElementById("weekly-leaderboard");
+  const allTimeLeaderboard = document.getElementById("all-time-leaderboard");
+
+  weeklyTab.addEventListener("click", () => {
+    weeklyTab.classList.add("active");
+    allTimeTab.classList.remove("active");
+    weeklyLeaderboard.classList.add("active");
+    allTimeLeaderboard.classList.remove("active");
+  });
+
+  allTimeTab.addEventListener("click", () => {
+    allTimeTab.classList.add("active");
+    weeklyTab.classList.remove("active");
+    allTimeLeaderboard.classList.add("active");
+    weeklyLeaderboard.classList.remove("active");
+  });
+
+  // Load both leaderboards
   try {
-    const response = await fetch(`${API_BASE_URL}/api/leaderboard`, {
+    // Load weekly leaderboard
+    const weeklyResponse = await fetch(`${API_BASE_URL}/api/leaderboard/weekly`, {
       credentials: "include",
     });
-    if (!response.ok) {
-      throw new Error(`Server returned ${response.status}`);
+    if (!weeklyResponse.ok) {
+      throw new Error(`Server returned ${weeklyResponse.status}`);
     }
-    const data = await response.json();
+    const weeklyData = await weeklyResponse.json();
+    state.weeklyLeaderboard = weeklyData.leaderboard || [];
 
-    state.leaderboard = data.leaderboard || [];
+    // Load all-time leaderboard
+    const allTimeResponse = await fetch(`${API_BASE_URL}/api/leaderboard/all-time`, {
+      credentials: "include",
+    });
+    if (!allTimeResponse.ok) {
+      throw new Error(`Server returned ${allTimeResponse.status}`);
+    }
+    const allTimeData = await allTimeResponse.json();
+    state.allTimeLeaderboard = allTimeData.leaderboard || [];
 
-    if (state.leaderboard.length === 0) {
+    // Show message if both leaderboards are empty
+    if (state.weeklyLeaderboard.length === 0 && state.allTimeLeaderboard.length === 0) {
       leaderboardAlert.innerHTML = "No entries in the leaderboard yet.";
       leaderboardAlert.className = "alert alert-info";
       return;
     }
 
-    // Render leaderboard
-    renderLeaderboardEntries();
+    // Render both leaderboards
+    renderWeeklyLeaderboard();
+    renderAllTimeLeaderboard();
 
     // Set up auto-refresh for the leaderboard
     setupLeaderboardRefresh();
@@ -36,12 +67,43 @@ const renderLeaderboard = async () => {
   }
 };
 
-// Render leaderboard entries
-const renderLeaderboardEntries = () => {
-  const leaderboardBody = document.getElementById("leaderboard-body");
+// Render weekly leaderboard entries
+const renderWeeklyLeaderboard = () => {
+  const leaderboardBody = document.getElementById("weekly-leaderboard-body");
   leaderboardBody.innerHTML = "";
 
-  state.leaderboard.forEach((entry, index) => {
+  if (state.weeklyLeaderboard.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = '<td colspan="3">No challenges solved this week</td>';
+    leaderboardBody.appendChild(row);
+    return;
+  }
+
+  state.weeklyLeaderboard.forEach((entry, index) => {
+    const row = document.createElement("tr");
+    row.innerHTML = `
+      <td>${index + 1}</td>
+      <td>${entry.username}</td>
+      <td>${entry.challengesSolved}</td>
+    `;
+
+    leaderboardBody.appendChild(row);
+  });
+};
+
+// Render all-time leaderboard entries
+const renderAllTimeLeaderboard = () => {
+  const leaderboardBody = document.getElementById("all-time-leaderboard-body");
+  leaderboardBody.innerHTML = "";
+
+  if (state.allTimeLeaderboard.length === 0) {
+    const row = document.createElement("tr");
+    row.innerHTML = '<td colspan="3">No challenges solved yet</td>';
+    leaderboardBody.appendChild(row);
+    return;
+  }
+
+  state.allTimeLeaderboard.forEach((entry, index) => {
     const row = document.createElement("tr");
     row.innerHTML = `
       <td>${index + 1}</td>
@@ -68,20 +130,24 @@ const setupLeaderboardRefresh = () => {
     }
 
     try {
-      const response = await fetch(`${API_BASE_URL}/api/leaderboard`, {
+      // Refresh weekly leaderboard
+      const weeklyResponse = await fetch(`${API_BASE_URL}/api/leaderboard/weekly`, {
         credentials: "include",
       });
-      if (!response.ok) {
-        throw new Error(`Server returned ${response.status}`);
+      if (weeklyResponse.ok) {
+        const weeklyData = await weeklyResponse.json();
+        state.weeklyLeaderboard = weeklyData.leaderboard || [];
+        renderWeeklyLeaderboard();
       }
-      const data = await response.json();
 
-      state.leaderboard = data.leaderboard || [];
-
-      // Update leaderboard if the element still exists
-      const leaderboardBody = document.getElementById("leaderboard-body");
-      if (leaderboardBody) {
-        renderLeaderboardEntries();
+      // Refresh all-time leaderboard
+      const allTimeResponse = await fetch(`${API_BASE_URL}/api/leaderboard/all-time`, {
+        credentials: "include",
+      });
+      if (allTimeResponse.ok) {
+        const allTimeData = await allTimeResponse.json();
+        state.allTimeLeaderboard = allTimeData.leaderboard || [];
+        renderAllTimeLeaderboard();
       }
     } catch (error) {
       console.error("Leaderboard refresh error:", error);
