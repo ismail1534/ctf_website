@@ -27,17 +27,7 @@ const renderLeaderboard = async () => {
 
   // Load both leaderboards
   try {
-    // Load weekly leaderboard
-    const weeklyResponse = await fetch(`${API_BASE_URL}/api/leaderboard/weekly`, {
-      credentials: "include",
-    });
-    if (!weeklyResponse.ok) {
-      throw new Error(`Server returned ${weeklyResponse.status}`);
-    }
-    const weeklyData = await weeklyResponse.json();
-    state.weeklyLeaderboard = weeklyData.leaderboard || [];
-
-    // Load all-time leaderboard
+    // Load all-time leaderboard data for both tabs since all challenges are weekly
     const allTimeResponse = await fetch(`${API_BASE_URL}/api/leaderboard/all-time`, {
       credentials: "include",
     });
@@ -45,16 +35,19 @@ const renderLeaderboard = async () => {
       throw new Error(`Server returned ${allTimeResponse.status}`);
     }
     const allTimeData = await allTimeResponse.json();
+
+    // Use the same data for both weekly and all-time
+    state.weeklyLeaderboard = allTimeData.leaderboard || [];
     state.allTimeLeaderboard = allTimeData.leaderboard || [];
 
-    // Show message if both leaderboards are empty
-    if (state.weeklyLeaderboard.length === 0 && state.allTimeLeaderboard.length === 0) {
+    // Show message if leaderboard is empty
+    if (state.allTimeLeaderboard.length === 0) {
       leaderboardAlert.innerHTML = "No entries in the leaderboard yet.";
       leaderboardAlert.className = "alert alert-info";
       return;
     }
 
-    // Render both leaderboards
+    // Render both leaderboards (with the same data)
     renderWeeklyLeaderboard();
     renderAllTimeLeaderboard();
 
@@ -130,23 +123,18 @@ const setupLeaderboardRefresh = () => {
     }
 
     try {
-      // Refresh weekly leaderboard
-      const weeklyResponse = await fetch(`${API_BASE_URL}/api/leaderboard/weekly`, {
-        credentials: "include",
-      });
-      if (weeklyResponse.ok) {
-        const weeklyData = await weeklyResponse.json();
-        state.weeklyLeaderboard = weeklyData.leaderboard || [];
-        renderWeeklyLeaderboard();
-      }
-
-      // Refresh all-time leaderboard
+      // Refresh all-time leaderboard for both tabs
       const allTimeResponse = await fetch(`${API_BASE_URL}/api/leaderboard/all-time`, {
         credentials: "include",
       });
       if (allTimeResponse.ok) {
         const allTimeData = await allTimeResponse.json();
+        // Use same data for both leaderboards
+        state.weeklyLeaderboard = allTimeData.leaderboard || [];
         state.allTimeLeaderboard = allTimeData.leaderboard || [];
+
+        // Update both displays
+        renderWeeklyLeaderboard();
         renderAllTimeLeaderboard();
       }
     } catch (error) {

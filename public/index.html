@@ -28,8 +28,8 @@
     <!-- Home template -->
     <template id="home-template">
       <div class="card">
-        <h2>Welcome to True Players</h2>
-        <p>Note: The website is still under development so please ignore any bugs 😊</p>
+        <h2>We are the True Players</h2>
+        <p>Note: The website is still under development so please report any bugs you find (DM me)</p>
         <div id="site-status" class="alert"></div>
       </div>
     </template>
@@ -129,7 +129,7 @@
 
       <div id="weekly-leaderboard" class="leaderboard-section active">
         <h3>Weekly Challenges Leaderboard</h3>
-        <p class="section-description">This shows rankings for challenges marked as "Weekly" by administrators.</p>
+
         <table class="leaderboard">
           <thead>
             <tr>
@@ -146,7 +146,6 @@
 
       <div id="all-time-leaderboard" class="leaderboard-section">
         <h3>All-Time Rankings</h3>
-        <p class="section-description">This shows the overall rankings based on all challenges solved.</p>
         <table class="leaderboard">
           <thead>
             <tr>
@@ -235,14 +234,6 @@
             <small class="form-text text-muted">A hint that will help users solve the challenge.</small>
           </div>
           <div class="form-group">
-            <label for="challenge-weekly">Challenge Type</label>
-            <div class="checkbox-wrapper">
-              <input type="checkbox" id="challenge-weekly" class="form-check-input" />
-              <label for="challenge-weekly" class="form-check-label">Weekly Challenge</label>
-            </div>
-            <small class="form-text text-muted">Weekly challenges will be shown in the weekly leaderboard.</small>
-          </div>
-          <div class="form-group">
             <label for="challenge-deadline">Deadline (Optional)</label>
             <input type="datetime-local" id="challenge-deadline" class="form-control" />
             <small class="form-text text-muted">Set a deadline for this challenge if applicable.</small>
@@ -272,7 +263,6 @@
             <th>Description</th>
             <th>Category</th>
             <th>Flag</th>
-            <th>Type</th>
             <th>File</th>
             <th>Actions</th>
           </tr>
