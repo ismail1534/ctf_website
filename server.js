@@ -32,7 +32,12 @@ app.use(
         return callback(null, true);
       }
 
-      const allowedOrigins = [process.env.FRONTEND_URL, "http://localhost:3000", "https://ctf-website-mv21.vercel.app"];
+      const allowedOrigins = [
+        process.env.FRONTEND_URL, 
+        "http://localhost:3000", 
+        "https://ctf-website-mv21.vercel.app",
+        process.env.KOYEB_URL // New Koyeb URL will be set as environment variable
+      ].filter(Boolean); // Remove any undefined values
 
       // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) {
@@ -125,6 +130,6 @@ app.use((err, req, res, next) => {
 
 // Start server
 const PORT = process.env.PORT || 10000;
-app.listen(PORT, "0.0.0.0", () => {
+app.listen(PORT, () => {
   console.log(`Server running on port ${PORT}`);
 });

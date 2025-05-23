@@ -1,0 +1,27 @@
+name: ctf-website
+services:
+  - name: ctf-backend
+    instance_type: nano
+    git:
+      repository: https://github.com/ismail1534/ctf_website
+      branch: main
+      build_command: npm install
+    envs:
+      - key: NODE_ENV
+        value: production
+      - key: PORT
+        value: 8080
+      - key: MONGODB_URI
+        value: "mongodb+srv://ismailshahzad573:ismail153417@cluster0.mf0zdd1.mongodb.net/ctf_website?retryWrites=true&w=majority&appName=Cluster0"
+      - key: SESSION_SECRET
+        value: "f83e7c0e9eaa44978dbb5c0e94f3bd70a19f20a0d2f34a9d92e64af98186b5f0"
+      - key: FRONTEND_URL
+        value: "https://ctf-website-mv21.vercel.app"
+      - key: KOYEB_URL
+        value: "REPLACE_WITH_YOUR_KOYEB_URL"
+    ports:
+      - port: 8080
+        protocol: http
+    routes:
+      - path: /*
+        port: 8080
