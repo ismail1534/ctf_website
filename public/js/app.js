@@ -76,6 +76,72 @@ const isMobile = () => {
   return /Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent);
 };
 
+// Logout user function - clears local data and redirects to login
+const logoutUser = async () => {
+  console.log("Logging out user due to invalid session");
+  
+  // Clear local state
+  state.user = null;
+  localStorage.removeItem("user");
+  
+  // Optional: Call backend logout route
+  try {
+    await fetch(`${API_BASE_URL}/api/auth/logout`, {
+      method: "GET",
+      credentials: "include",
+    });
+  } catch (error) {
+    console.error("Backend logout error:", error);
+    // Continue with logout even if backend call fails
+  }
+  
+  // Redirect to login page
+  navigateTo("/login");
+};
+
+// Check session validity with automatic logout
+const checkSessionValidity = async () => {
+  try {
+    const response = await fetch(`${API_BASE_URL}/api/auth/status`, {
+      credentials: "include",
+      headers: {
+        "Accept": "application/json",
+        "Content-Type": "application/json",
+      },
+    });
+
+    // Check if response is JSON (valid API response)
+    const contentType = response.headers.get("content-type");
+    if (!contentType || !contentType.includes("application/json")) {
+      console.log("Non-JSON response received, treating as invalid session");
+      await logoutUser();
+      return false;
+    }
+
+    const data = await response.json();
+    
+    // Check if session is authenticated
+    if (!data.authenticated) {
+      console.log("Session not authenticated, logging out user");
+      await logoutUser();
+      return false;
+    }
+
+    // Session is valid, update user state
+    if (data.user) {
+      state.user = data.user;
+      localStorage.setItem("user", JSON.stringify(data.user));
+      console.log("Session validated, user:", data.user.username);
+    }
+    
+    return true;
+  } catch (error) {
+    console.error("Session validation error:", error);
+    await logoutUser();
+    return false;
+  }
+};
+
 // Handle route changes with better error handling
 const handleRouteChange = async () => {
   const path = window.location.hash.substring(1) || "/";
@@ -137,79 +203,23 @@ const handleRouteChange = async () => {
   }
 };
 
-// Enhanced authentication check with better session handling
+// Enhanced authentication check with automatic session validation
 const checkAuth = async () => {
   if (!state.user) {
-    try {
-      // First try to get user from server session
-      const response = await fetch(API_BASE_URL + "/api/auth/me", {
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-      
-      if (response.ok) {
-        const data = await response.json();
-        state.user = data.user;
-        // Store user data in localStorage for persistence
-        localStorage.setItem("user", JSON.stringify(data.user));
-        console.log("User authenticated from server session:", state.user.username);
-        return;
-      }
-      
-      // If server session is invalid, try localStorage as fallback
-      const storedUser = localStorage.getItem("user");
-      if (storedUser) {
-        try {
-          const userData = JSON.parse(storedUser);
-          console.log("Attempting to restore session from localStorage");
-          
-          // Try to validate the stored user data with the server
-          const statusResponse = await fetch(API_BASE_URL + "/api/auth/status", {
-            credentials: "include",
-          });
-          
-          if (statusResponse.ok) {
-            const statusData = await statusResponse.json();
-            if (statusData.hasSession) {
-              // Server has a valid session, get full user data
-              const userResponse = await fetch(API_BASE_URL + "/api/auth/me", {
-                credentials: "include",
-              });
-              if (userResponse.ok) {
-                const userData = await userResponse.json();
-                state.user = userData.user;
-                localStorage.setItem("user", JSON.stringify(userData.user));
-                console.log("Session restored successfully:", state.user.username);
-                return;
-              }
-            }
-          }
-          
-          // If we reach here, the stored data is stale
-          console.log("Stored user data is stale, redirecting to login");
-          localStorage.removeItem("user");
-          navigateTo("/login");
-          throw new Error("Session expired. Please log in again.");
-          
-        } catch (error) {
-          console.error("Error parsing user from localStorage:", error);
-          localStorage.removeItem("user");
-          navigateTo("/login");
-          throw new Error("Invalid stored session. Please log in again.");
-        }
-      }
-      
-      // No valid session found
-      navigateTo("/login");
-      throw new Error("Not authenticated");
-      
-    } catch (error) {
-      console.error("Auth error:", error);
-      navigateTo("/login");
-      throw error;
+    // First check session validity
+    const sessionValid = await checkSessionValidity();
+    if (!sessionValid) {
+      throw new Error("Session validation failed");
     }
+    
+    // If we reach here, session is valid and user is set
+    return;
+  }
+
+  // If we have a user in state, still validate session
+  const sessionValid = await checkSessionValidity();
+  if (!sessionValid) {
+    throw new Error("Session validation failed");
   }
 };
 
@@ -336,71 +346,30 @@ const renderNotFound = () => {
   `;
 };
 
-// Initialize the application with enhanced session handling
+// Initialize the application with automatic session validation
 const init = async () => {
   try {
     console.log("Initializing application...");
     
-    // Try to get session status first
-    const statusResponse = await fetch(`${API_BASE_URL}/api/auth/status`, {
-      credentials: "include",
-    });
-
-    if (statusResponse.ok) {
-      const statusData = await statusResponse.json();
-      console.log("Session status on init:", statusData);
-
-      // If we have an active server-side session, use it
-      if (statusData.hasSession && statusData.user) {
-        console.log("Active session found, loading user data");
-
-        // Fetch full user data
-        const userResponse = await fetch(`${API_BASE_URL}/api/auth/me`, {
-          credentials: "include",
-        });
-
-        if (userResponse.ok) {
-          const userData = await userResponse.json();
-          state.user = userData.user;
-          localStorage.setItem("user", JSON.stringify(userData.user));
-          console.log("User data loaded from session:", state.user.username);
-        }
-      } else {
-        // Fallback to localStorage if no active session
-        const storedUser = localStorage.getItem("user");
-        if (storedUser) {
-          try {
-            state.user = JSON.parse(storedUser);
-            console.log("User loaded from localStorage:", state.user.username);
-          } catch (error) {
-            console.error("Error parsing user from localStorage:", error);
-            localStorage.removeItem("user");
-          }
-        }
-      }
+    // Always check session validity on app initialization
+    const sessionValid = await checkSessionValidity();
+    
+    if (!sessionValid) {
+      // User will be automatically redirected to login by checkSessionValidity
+      return;
     }
+    
+    // Mark as initialized
+    state.isInitialized = true;
+
+    // Handle route changes
+    window.addEventListener("hashchange", handleRouteChange);
+
+    // Initial route handling
+    handleRouteChange();
   } catch (error) {
-    console.error("Error checking session status:", error);
-
-    // Fallback to localStorage
-    const storedUser = localStorage.getItem("user");
-    if (storedUser) {
-      try {
-        state.user = JSON.parse(storedUser);
-        console.log("User loaded from localStorage:", state.user.username);
-      } catch (error) {
-        console.error("Error parsing user from localStorage:", error);
-        localStorage.removeItem("user");
-      }
-    }
+    console.error("Initialization error:", error);
+    // If initialization fails, redirect to login
+    await logoutUser();
   }
-
-  // Mark as initialized
-  state.isInitialized = true;
-
-  // Handle route changes
-  window.addEventListener("hashchange", handleRouteChange);
-
-  // Initial route handling
-  handleRouteChange();
 };

@@ -85,6 +85,28 @@ app.use((req, res, next) => {
   next();
 });
 
+// API routes middleware - ensure JSON responses only
+app.use("/api", (req, res, next) => {
+  // Set JSON content type for all API routes
+  res.setHeader("Content-Type", "application/json");
+  
+  // Add error handler to catch any non-JSON responses
+  const originalSend = res.send;
+  res.send = function(data) {
+    // Ensure we're sending JSON
+    if (typeof data === "string" && !data.startsWith("{")) {
+      console.error("Non-JSON response detected in API route:", req.path);
+      return originalSend.call(this, JSON.stringify({
+        error: "Invalid response format",
+        message: "API routes must return JSON only"
+      }));
+    }
+    return originalSend.call(this, data);
+  };
+  
+  next();
+});
+
 // Session configuration
 app.use(
   session({

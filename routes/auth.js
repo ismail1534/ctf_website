@@ -231,8 +231,11 @@ router.get("/status", (req, res) => {
   console.log("User agent:", req.headers["user-agent"]);
   console.log("Request origin:", req.headers.origin);
 
-  // Check and refresh session if needed
-  if (req.session.userId) {
+  // Ensure we always return JSON
+  res.setHeader("Content-Type", "application/json");
+
+  // Check if session is valid
+  if (req.session.userId && req.session.user) {
     // Touch the session to keep it alive
     req.session.touch();
 
@@ -240,10 +243,9 @@ router.get("/status", (req, res) => {
     req.session.save((err) => {
       if (err) {
         console.error("Session save error in status check:", err);
-        return res.json({
-          success: false,
+        return res.status(401).json({
+          authenticated: false,
           message: "Session error",
-          hasSession: false,
           sessionID: req.sessionID,
           user: null,
           userAgent: req.headers["user-agent"],
@@ -252,19 +254,28 @@ router.get("/status", (req, res) => {
         });
       }
     });
+
+    // Return authenticated response
+    return res.json({
+      authenticated: true,
+      message: "Session is valid",
+      sessionID: req.sessionID,
+      user: {
+        username: req.session.user.username,
+        isAdmin: req.session.user.isAdmin,
+      },
+      userAgent: req.headers["user-agent"],
+      origin: req.headers.origin,
+      hasCookieHeader: !!req.headers.cookie,
+    });
   }
 
-  return res.json({
-    success: true,
-    message: "API is running",
-    hasSession: !!req.session.userId,
+  // Session is invalid or missing
+  return res.status(401).json({
+    authenticated: false,
+    message: "No valid session found",
     sessionID: req.sessionID,
-    user: req.session.user
-      ? {
-          username: req.session.user.username,
-          isAdmin: req.session.user.isAdmin,
-        }
-      : null,
+    user: null,
     userAgent: req.headers["user-agent"],
     origin: req.headers.origin,
     hasCookieHeader: !!req.headers.cookie,
