@@ -95,7 +95,15 @@ const logoutUser = async () => {
     // Continue with logout even if backend call fails
   }
   
-  // Redirect to login page
+  // If app is not initialized yet, set the hash and let init() handle it
+  if (!state.isInitialized) {
+    console.log("App not initialized, setting hash for init to handle");
+    window.location.hash = "#/login";
+    return;
+  }
+  
+  // If app is initialized, use normal navigation
+  console.log("App initialized, using normal navigation");
   navigateTo("/login");
 };
 
@@ -145,6 +153,8 @@ const checkSessionValidity = async () => {
 // Handle route changes with better error handling
 const handleRouteChange = async () => {
   const path = window.location.hash.substring(1) || "/";
+  
+  console.log("Handling route change to:", path);
 
   // Show loading for route changes
   showLoading();
@@ -160,6 +170,19 @@ const handleRouteChange = async () => {
     if (path === "/" || path === "/home") {
       renderHome();
     } else if (path === "/login") {
+      console.log("Rendering login page");
+      // Check if templates are loaded
+      if (!templates.login) {
+        console.error("Login template not found!");
+        app.innerHTML = `
+          <div class="error-container">
+            <h2>Template Error</h2>
+            <p>Login template not found. Please refresh the page.</p>
+            <button class="btn btn-primary" onclick="window.location.reload()">Refresh Page</button>
+          </div>
+        `;
+        return;
+      }
       renderLogin();
     } else if (path === "/register") {
       renderRegister();
@@ -351,11 +374,38 @@ const init = async () => {
   try {
     console.log("Initializing application...");
     
+    // Check if DOM is ready
+    if (!app) {
+      console.error("App element not found!");
+      return;
+    }
+    
+    // Check if templates are loaded
+    if (!templates.login) {
+      console.error("Templates not loaded!");
+      app.innerHTML = `
+        <div class="error-container">
+          <h2>Initialization Error</h2>
+          <p>Templates not loaded. Please refresh the page.</p>
+          <button class="btn btn-primary" onclick="window.location.reload()">Refresh Page</button>
+        </div>
+      `;
+      return;
+    }
+    
+    console.log("DOM and templates ready, checking session...");
+    
     // Always check session validity on app initialization
     const sessionValid = await checkSessionValidity();
     
     if (!sessionValid) {
       // User will be automatically redirected to login by checkSessionValidity
+      // If the hash is already set to login, we need to handle it
+      if (window.location.hash === "#/login") {
+        console.log("Hash already set to login, rendering login page");
+        state.isInitialized = true;
+        handleRouteChange();
+      }
       return;
     }
     
@@ -373,3 +423,71 @@ const init = async () => {
     await logoutUser();
   }
 };
+
+// Fallback mechanism to ensure login page renders
+// This will run if the normal initialization fails
+window.addEventListener('load', () => {
+  // If we're on login page and nothing has rendered after 2 seconds, force render
+  setTimeout(() => {
+    if (window.location.hash === "#/login" && app.innerHTML.trim() === "") {
+      console.log("Fallback: Forcing login page render");
+      
+      // Check if we can render login
+      if (templates.login && app) {
+        state.isInitialized = true;
+        renderLogin();
+      } else {
+        // If templates aren't available, show a simple login form
+        console.log("Fallback: Rendering simple login form");
+        app.innerHTML = `
+          <div class="form-container">
+            <h2>Login</h2>
+            <div id="login-alert"></div>
+            <form id="login-form">
+              <div class="form-group">
+                <label for="username">Username</label>
+                <input type="text" id="username" class="form-control" required />
+              </div>
+              <div class="form-group">
+                <label for="password">Password</label>
+                <input type="password" id="password" class="form-control" required />
+              </div>
+              <button type="submit" class="btn btn-primary">Login</button>
+            </form>
+            <p>Don't have an account? <a href="#/register">Register</a></p>
+          </div>
+        `;
+        
+        // Add basic login functionality
+        const loginForm = document.getElementById("login-form");
+        if (loginForm) {
+          loginForm.addEventListener("submit", async (e) => {
+            e.preventDefault();
+            const username = document.getElementById("username").value;
+            const password = document.getElementById("password").value;
+            
+            try {
+              const response = await fetch(`${API_BASE_URL}/api/auth/login`, {
+                method: "POST",
+                headers: { "Content-Type": "application/json" },
+                body: JSON.stringify({ username, password }),
+                credentials: "include",
+              });
+              
+              const data = await response.json();
+              if (response.ok) {
+                window.location.reload(); // Reload to get full app functionality
+              } else {
+                document.getElementById("login-alert").innerHTML = data.message;
+                document.getElementById("login-alert").className = "alert alert-danger";
+              }
+            } catch (error) {
+              document.getElementById("login-alert").innerHTML = "Error logging in. Please try again.";
+              document.getElementById("login-alert").className = "alert alert-danger";
+            }
+          });
+        }
+      }
+    }
+  }, 2000);
+});
