@@ -52,6 +52,20 @@ const renderDashboard = async () => {
   }
 };
 
+// Mobile-friendly event handler
+const addMobileFriendlyEvent = (element, eventType, handler) => {
+  // Add both click and touchstart events for mobile compatibility
+  element.addEventListener(eventType, handler);
+  
+  // For mobile devices, also add touchstart to prevent delays
+  if (/Android|webOS|iPhone|iPad|iPod|BlackBerry|IEMobile|Opera Mini/i.test(navigator.userAgent)) {
+    element.addEventListener('touchstart', (e) => {
+      e.preventDefault(); // Prevent default touch behavior
+      handler(e);
+    }, { passive: false });
+  }
+};
+
 // Render challenges in the dashboard
 const renderChallenges = () => {
   // Get elements
@@ -164,9 +178,9 @@ const renderChallenges = () => {
     isFirst = false;
   });
 
-  // Add event listeners for category tabs
+  // Add event listeners for category tabs with mobile support
   document.querySelectorAll(".category-tab").forEach((tab) => {
-    tab.addEventListener("click", () => {
+    addMobileFriendlyEvent(tab, "click", () => {
       // Remove active class from all tabs and sections
       document.querySelectorAll(".category-tab").forEach((t) => t.classList.remove("active"));
       document.querySelectorAll(".challenge-list").forEach((s) => s.classList.remove("active"));
@@ -180,17 +194,17 @@ const renderChallenges = () => {
     });
   });
 
-  // Add event listeners to challenge view buttons
+  // Add event listeners to challenge view buttons with mobile support
   document.querySelectorAll(".view-challenge").forEach((button) => {
-    button.addEventListener("click", () => {
+    addMobileFriendlyEvent(button, "click", () => {
       const challengeId = button.getAttribute("data-id");
       openChallengeModal(challengeId);
     });
   });
 
-  // Add event listeners to hint buttons
+  // Add event listeners to hint buttons with mobile support
   document.querySelectorAll(".show-hint").forEach((button) => {
-    button.addEventListener("click", (e) => {
+    addMobileFriendlyEvent(button, "click", (e) => {
       e.stopPropagation();
       const challengeId = button.getAttribute("data-id");
       const challenge = state.challenges.find((c) => c._id === challengeId);
@@ -201,7 +215,7 @@ const renderChallenges = () => {
   });
 };
 
-// Show hint modal
+// Show hint modal with mobile improvements
 const showHintModal = (challenge) => {
   // Create modal for hint
   const modal = document.createElement("div");
@@ -221,14 +235,14 @@ const showHintModal = (challenge) => {
 
   document.body.appendChild(modal);
 
-  // Close modal handler
+  // Close modal handler with mobile support
   const closeModal = modal.querySelector(".close-modal");
-  closeModal.addEventListener("click", () => {
+  addMobileFriendlyEvent(closeModal, "click", () => {
     document.body.removeChild(modal);
   });
 
-  // Close modal when clicking outside
-  window.addEventListener("click", (e) => {
+  // Close modal when clicking outside with mobile support
+  addMobileFriendlyEvent(modal, "click", (e) => {
     if (e.target === modal) {
       document.body.removeChild(modal);
     }
@@ -244,7 +258,7 @@ const showHintModal = (challenge) => {
   window.addEventListener("keydown", escapeHandler);
 };
 
-// Open challenge modal
+// Open challenge modal with mobile improvements
 const openChallengeModal = (challengeId) => {
   // Find the challenge from state
   const challenge = state.challenges.find((c) => c._id === challengeId);
@@ -303,13 +317,13 @@ const openChallengeModal = (challengeId) => {
     modalMetadata.style.display = "none";
   }
 
-  // Add hint button if available
+  // Add hint button if available with mobile support
   const modalActions = document.getElementById("modal-actions");
   if (challenge.hint) {
     const hintButton = document.createElement("button");
     hintButton.className = "btn btn-info";
     hintButton.innerHTML = '<i class="fas fa-lightbulb"></i> Show Hint';
-    hintButton.addEventListener("click", () => {
+    addMobileFriendlyEvent(hintButton, "click", () => {
       showHintModal(challenge);
     });
     modalActions.appendChild(hintButton);
@@ -326,7 +340,7 @@ const openChallengeModal = (challengeId) => {
     modalFileLink.innerHTML = `<i class="fas fa-external-link-alt"></i> Open File`;
 
     // Simple click handler for logging
-    modalFileLink.addEventListener("click", () => {
+    addMobileFriendlyEvent(modalFileLink, "click", () => {
       console.log("Opening external file URL:", challenge.fileUrl);
     });
   } else if (challenge.file && challenge.file.path) {
@@ -340,8 +354,8 @@ const openChallengeModal = (challengeId) => {
     modalFileLink.setAttribute("download", challenge.file.originalName);
     modalFileLink.innerHTML = `<i class="fas fa-download"></i> Download ${challenge.file.originalName}`;
 
-    // Add download handling with loading indicator
-    modalFileLink.addEventListener("click", async (e) => {
+    // Add download handling with loading indicator and mobile support
+    addMobileFriendlyEvent(modalFileLink, "click", async (e) => {
       e.preventDefault();
 
       // Create and show loading indicator
@@ -422,8 +436,8 @@ const openChallengeModal = (challengeId) => {
     modalFileContainer.style.display = "none";
   }
 
-  // Submit flag handler
-  submitFlag.addEventListener("click", async () => {
+  // Submit flag handler with mobile support
+  addMobileFriendlyEvent(submitFlag, "click", async () => {
     const flag = flagInput.value.trim();
 
     if (!flag) {
@@ -464,7 +478,7 @@ const openChallengeModal = (challengeId) => {
           const leaderboardBtn = document.createElement("button");
           leaderboardBtn.className = "btn btn-primary mt-2";
           leaderboardBtn.textContent = "View Leaderboard";
-          leaderboardBtn.addEventListener("click", () => {
+          addMobileFriendlyEvent(leaderboardBtn, "click", () => {
             document.body.removeChild(modal);
             navigateTo("/leaderboard");
           });
@@ -483,13 +497,13 @@ const openChallengeModal = (challengeId) => {
     }
   });
 
-  // Close modal handler
-  closeModal.addEventListener("click", () => {
+  // Close modal handler with mobile support
+  addMobileFriendlyEvent(closeModal, "click", () => {
     document.body.removeChild(modal);
   });
 
-  // Close modal when clicking outside
-  window.addEventListener("click", (e) => {
+  // Close modal when clicking outside with mobile support
+  addMobileFriendlyEvent(modal, "click", (e) => {
     if (e.target === modal) {
       document.body.removeChild(modal);
     }

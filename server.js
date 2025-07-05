@@ -89,7 +89,7 @@ app.use((req, res, next) => {
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "default_session_secret",
-    resave: false,
+    resave: true,
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
@@ -103,21 +103,34 @@ app.use(
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
       domain: undefined, // Don't set a specific domain
+      path: "/",
     },
     proxy: true, // Trust the reverse proxy
+    name: "connect.sid",
   })
 );
 
-// Debug session middleware
+// Debug session middleware with enhanced logging
 app.use((req, res, next) => {
   console.log("Session ID:", req.sessionID);
   console.log("Session User:", req.session.user ? req.session.user.username : "No user");
   console.log("Cookies:", req.headers.cookie);
+  console.log("User agent:", req.headers["user-agent"]);
+  console.log("Request origin:", req.headers.origin);
+  console.log("Request method:", req.method);
+  console.log("Request path:", req.path);
 
   // Add headers to help with CORS and cookies
   res.header("Access-Control-Allow-Credentials", "true");
   res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, Authorization");
   res.header("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE, OPTIONS");
+  
+  // Add cache control headers to prevent caching of API responses
+  if (req.path.startsWith("/api/")) {
+    res.header("Cache-Control", "no-cache, no-store, must-revalidate");
+    res.header("Pragma", "no-cache");
+    res.header("Expires", "0");
+  }
 
   next();
 });

@@ -56,8 +56,8 @@ const renderAdminChallenges = async () => {
     challengesAlert.className = "alert alert-danger";
   }
 
-  // Add challenge button handler
-  addChallengeBtn.addEventListener("click", () => {
+  // Add challenge button handler with mobile support
+  addMobileFriendlyEvent(addChallengeBtn, "click", () => {
     // Reset form
     challengeForm.reset();
     document.getElementById("challenge-id").value = "";
@@ -67,8 +67,8 @@ const renderAdminChallenges = async () => {
     challengeFormContainer.style.display = "block";
   });
 
-  // Cancel button handler
-  cancelChallengeBtn.addEventListener("click", () => {
+  // Cancel button handler with mobile support
+  addMobileFriendlyEvent(cancelChallengeBtn, "click", () => {
     challengeFormContainer.style.display = "none";
   });
 
@@ -228,15 +228,15 @@ const renderChallengesTable = (challenges) => {
     challengesBody.appendChild(row);
   });
 
-  // Add event listeners to buttons
+  // Add event listeners to buttons with mobile support
   document.querySelectorAll(".edit-challenge").forEach((button) => {
-    button.addEventListener("click", async () => {
+    addMobileFriendlyEvent(button, "click", async () => {
       await editChallenge(button.getAttribute("data-id"));
     });
   });
 
   document.querySelectorAll(".delete-challenge").forEach((button) => {
-    button.addEventListener("click", async () => {
+    addMobileFriendlyEvent(button, "click", async () => {
       await deleteChallenge(button.getAttribute("data-id"));
     });
   });
@@ -444,15 +444,15 @@ const renderUsersTable = (users) => {
     usersBody.appendChild(row);
   });
 
-  // Add event listeners to buttons
+  // Add event listeners to buttons with mobile support
   document.querySelectorAll(".ban-user").forEach((button) => {
-    button.addEventListener("click", async () => {
+    addMobileFriendlyEvent(button, "click", async () => {
       await banUser(button.getAttribute("data-id"), true);
     });
   });
 
   document.querySelectorAll(".unban-user").forEach((button) => {
-    button.addEventListener("click", async () => {
+    addMobileFriendlyEvent(button, "click", async () => {
       await banUser(button.getAttribute("data-id"), false);
     });
   });

@@ -197,7 +197,7 @@ router.get("/logout", (req, res) => {
   }
 });
 
-// Get current user
+// Get current user with enhanced session handling
 router.get("/me", isAuthenticated, async (req, res) => {
   try {
     const user = await User.findById(req.session.userId).select("-password");
@@ -205,6 +205,9 @@ router.get("/me", isAuthenticated, async (req, res) => {
     if (!user) {
       return res.status(404).json({ message: "User not found" });
     }
+
+    // Touch the session to keep it alive
+    req.session.touch();
 
     res.json({
       user: {
@@ -221,7 +224,7 @@ router.get("/me", isAuthenticated, async (req, res) => {
   }
 });
 
-// Healthcheck/status route
+// Healthcheck/status route with enhanced session validation
 router.get("/status", (req, res) => {
   console.log("Status check, session ID:", req.sessionID);
   console.log("Cookie header:", req.headers.cookie);
@@ -235,7 +238,19 @@ router.get("/status", (req, res) => {
 
     // Save session to ensure it's properly stored
     req.session.save((err) => {
-      if (err) console.error("Session save error in status check:", err);
+      if (err) {
+        console.error("Session save error in status check:", err);
+        return res.json({
+          success: false,
+          message: "Session error",
+          hasSession: false,
+          sessionID: req.sessionID,
+          user: null,
+          userAgent: req.headers["user-agent"],
+          origin: req.headers.origin,
+          hasCookieHeader: !!req.headers.cookie,
+        });
+      }
     });
   }
 
