@@ -29,7 +29,17 @@ const templates = {
 
 // Router
 const navigateTo = (path) => {
+  console.log("Navigating to:", path);
+  
+  // Set the hash
   window.location.hash = path;
+  
+  // Force trigger the route change handler immediately
+  // This ensures the route change is handled even if the hash change event doesn't fire
+  console.log("Forcing immediate route change handler for:", path);
+  setTimeout(() => {
+    handleRouteChange();
+  }, 50);
 };
 
 // Add footer to the page (except login and register pages)
@@ -187,7 +197,9 @@ const handleRouteChange = async () => {
     } else if (path === "/register") {
       renderRegister();
     } else if (path === "/dashboard") {
+      console.log("Rendering dashboard page");
       await checkAuth();
+      console.log("Auth check passed, calling renderDashboard");
       renderDashboard();
     } else if (path === "/leaderboard") {
       renderLeaderboard();
@@ -413,7 +425,14 @@ const init = async () => {
     state.isInitialized = true;
 
     // Handle route changes
-    window.addEventListener("hashchange", handleRouteChange);
+    window.addEventListener("hashchange", (e) => {
+      console.log("Hash change event triggered:", {
+        oldURL: e.oldURL,
+        newURL: e.newURL,
+        currentHash: window.location.hash
+      });
+      handleRouteChange();
+    });
 
     // Initial route handling
     handleRouteChange();

@@ -42,10 +42,9 @@ const renderLogin = () => {
 
         console.log("Session status check after login:", await statusCheck.json());
 
-        // Redirect to dashboard after login
-        setTimeout(() => {
-          navigateTo("/dashboard");
-        }, 1000);
+        // Redirect to dashboard after login immediately
+        console.log("Login successful, navigating to dashboard");
+        navigateTo("/dashboard");
       } else {
         loginAlert.innerHTML = data.message;
         loginAlert.className = "alert alert-danger";
@@ -99,10 +98,9 @@ const renderRegister = () => {
         registerAlert.innerHTML = data.message;
         registerAlert.className = "alert alert-success";
 
-        // Redirect to dashboard after registration
-        setTimeout(() => {
-          navigateTo("/dashboard");
-        }, 1000);
+        // Redirect to dashboard after registration immediately
+        console.log("Registration successful, navigating to dashboard");
+        navigateTo("/dashboard");
       } else {
         registerAlert.innerHTML = data.message;
         registerAlert.className = "alert alert-danger";
@@ -147,10 +145,9 @@ const renderAdminLogin = () => {
         adminLoginAlert.innerHTML = data.message;
         adminLoginAlert.className = "alert alert-success";
 
-        // Redirect to admin dashboard after login
-        setTimeout(() => {
-          navigateTo("/admin");
-        }, 1000);
+        // Redirect to admin dashboard after login immediately
+        console.log("Admin login successful, navigating to admin dashboard");
+        navigateTo("/admin");
       } else {
         adminLoginAlert.innerHTML = data.message;
         adminLoginAlert.className = "alert alert-danger";

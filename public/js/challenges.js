@@ -1,17 +1,37 @@
 // Render dashboard with challenges
 const renderDashboard = async () => {
+  console.log("renderDashboard called");
   state.currentPage = "dashboard";
+  
+  // Check if dashboard template exists
+  if (!templates.dashboard) {
+    console.error("Dashboard template not found!");
+    app.innerHTML = `
+      <div class="error-container">
+        <h2>Template Error</h2>
+        <p>Dashboard template not found. Please refresh the page.</p>
+        <button class="btn btn-primary" onclick="window.location.reload()">Refresh Page</button>
+      </div>
+    `;
+    return;
+  }
+  
+  console.log("Appending dashboard template");
   app.appendChild(templates.dashboard.content.cloneNode(true));
 
   const challengeList = document.getElementById("challenge-list");
   const dashboardAlert = document.getElementById("dashboard-alert");
+  
+  console.log("Dashboard elements found:", { challengeList, dashboardAlert });
 
   // Load challenges
   try {
+    console.log("Fetching challenges from API");
     const response = await fetch(API_BASE_URL + "/api/challenges", {
       credentials: "include",
     });
     const data = await response.json();
+    console.log("Challenges API response:", { status: response.status, data });
 
     // Handle leaderboard mode error
     if (!response.ok) {
@@ -36,6 +56,7 @@ const renderDashboard = async () => {
     }
 
     state.challenges = data.challenges;
+    console.log("Challenges loaded:", state.challenges.length);
 
     if (state.challenges.length === 0) {
       dashboardAlert.innerHTML = "No challenges available yet.";
@@ -44,6 +65,7 @@ const renderDashboard = async () => {
     }
 
     // Render challenges
+    console.log("Rendering challenges");
     renderChallenges();
   } catch (error) {
     console.error("Load challenges error:", error);
