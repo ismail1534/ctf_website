@@ -1,25 +1,62 @@
 // Render admin area
 const renderAdminArea = (path) => {
+  console.log("renderAdminArea called with path:", path);
   state.currentPage = "admin";
 
+  // Clear the app content first to ensure clean rendering
+  app.innerHTML = "";
+
+  // Check if admin dashboard template exists
+  if (!templates.adminDashboard) {
+    console.error("Admin dashboard template not found!");
+    app.innerHTML = `
+      <div class="error-container">
+        <h2>Template Error</h2>
+        <p>Admin dashboard template not found. Please refresh the page.</p>
+        <button class="btn btn-primary" onclick="window.location.reload()">Refresh Page</button>
+      </div>
+    `;
+    return;
+  }
+
+  console.log("Appending admin dashboard template");
   // Render the admin dashboard template
   app.appendChild(templates.adminDashboard.content.cloneNode(true));
 
   const adminContent = document.getElementById("admin-content");
+  console.log("Admin content element found:", adminContent);
 
   // Route to the correct admin section
   if (path === "/admin" || path === "/admin/") {
+    console.log("Rendering admin dashboard main page");
     adminContent.innerHTML = `
       <h2>Admin Dashboard</h2>
       <p>Welcome to the admin panel. Select an option from the sidebar.</p>
     `;
   } else if (path === "/admin/challenges") {
+    console.log("Rendering admin challenges section");
     renderAdminChallenges();
   } else if (path === "/admin/users") {
+    console.log("Rendering admin users section");
     renderAdminUsers();
   } else if (path === "/admin/site-config") {
+    console.log("Rendering admin site config section");
     renderAdminSiteConfig();
   }
+
+  // Add click event handlers to admin sidebar links
+  setTimeout(() => {
+    const adminLinks = document.querySelectorAll('.admin-sidebar a');
+    adminLinks.forEach(link => {
+      link.addEventListener('click', (e) => {
+        e.preventDefault();
+        const href = link.getAttribute('href');
+        const path = href.substring(1); // Remove the #
+        console.log("Admin sidebar link clicked:", path);
+        changeRoute(path);
+      });
+    });
+  }, 100);
 };
 
 // Render admin challenges section

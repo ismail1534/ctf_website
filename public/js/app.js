@@ -37,9 +37,31 @@ const navigateTo = (path) => {
   // Force trigger the route change handler immediately
   // This ensures the route change is handled even if the hash change event doesn't fire
   console.log("Forcing immediate route change handler for:", path);
-  setTimeout(() => {
-    handleRouteChange();
-  }, 50);
+  
+  // Use a more reliable approach - check if hash actually changed
+  const currentHash = window.location.hash.substring(1) || "/";
+  if (currentHash === path) {
+    // Hash changed successfully, trigger route change
+    setTimeout(() => {
+      handleRouteChange();
+    }, 50);
+  } else {
+    // Hash didn't change, force it and try again
+    console.log("Hash didn't change, forcing it again");
+    setTimeout(() => {
+      window.location.hash = path;
+      setTimeout(() => {
+        handleRouteChange();
+      }, 50);
+    }, 100);
+  }
+};
+
+// Direct route change function that bypasses hash change events
+const changeRoute = (path) => {
+  console.log("Direct route change to:", path);
+  window.location.hash = path;
+  handleRouteChange();
 };
 
 // Add footer to the page (except login and register pages)
@@ -206,7 +228,9 @@ const handleRouteChange = async () => {
     } else if (path === "/admin/login") {
       renderAdminLogin();
     } else if (path.startsWith("/admin")) {
+      console.log("Rendering admin area for path:", path);
       await checkAdminAuth();
+      console.log("Admin auth check passed, calling renderAdminArea");
       renderAdminArea(path);
     } else if (path === "/logout") {
       await logout();
@@ -304,25 +328,36 @@ const updateNavigation = () => {
   navLinks.innerHTML = "";
 
   // Home and leaderboard links for everyone
-  navLinks.innerHTML += `<li><a href="#/">Home</a></li>`;
-  navLinks.innerHTML += `<li><a href="#/leaderboard">Leaderboard</a></li>`;
+  navLinks.innerHTML += `<li><a href="#/" class="nav-link">Home</a></li>`;
+  navLinks.innerHTML += `<li><a href="#/leaderboard" class="nav-link">Leaderboard</a></li>`;
 
   if (state.user) {
     // Show dashboard for authenticated users
-    navLinks.innerHTML += `<li><a href="#/dashboard">Challenges</a></li>`;
+    navLinks.innerHTML += `<li><a href="#/dashboard" class="nav-link">Challenges</a></li>`;
 
     // Show admin link for admin users
     if (state.user.isAdmin) {
-      navLinks.innerHTML += `<li><a href="#/admin">Admin Panel</a></li>`;
+      navLinks.innerHTML += `<li><a href="#/admin" class="nav-link">Admin Panel</a></li>`;
     }
 
     // Logout link
-    navLinks.innerHTML += `<li><a href="#/logout">Logout</a></li>`;
+    navLinks.innerHTML += `<li><a href="#/logout" class="nav-link">Logout</a></li>`;
   } else {
     // Login/Register links for non-authenticated users
-    navLinks.innerHTML += `<li><a href="#/login">Login</a></li>`;
-    navLinks.innerHTML += `<li><a href="#/register">Register</a></li>`;
+    navLinks.innerHTML += `<li><a href="#/login" class="nav-link">Login</a></li>`;
+    navLinks.innerHTML += `<li><a href="#/register" class="nav-link">Register</a></li>`;
   }
+
+  // Add click event handlers to all navigation links
+  document.querySelectorAll('.nav-link').forEach(link => {
+    link.addEventListener('click', (e) => {
+      e.preventDefault();
+      const href = link.getAttribute('href');
+      const path = href.substring(1); // Remove the #
+      console.log("Navigation link clicked:", path);
+      changeRoute(path);
+    });
+  });
 };
 
 // Show alert message
