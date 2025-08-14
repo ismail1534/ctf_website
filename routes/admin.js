@@ -23,16 +23,18 @@ router.get("/challenges", isAdmin, async (req, res) => {
 // Create a new challenge
 router.post("/challenges", isAdmin, upload.single("file"), async (req, res) => {
   try {
-    const { title, description, flag, fileUrl, hint, deadline, author } = req.body;
+    const { title, description, category, flag, fileUrl, hint, deadline, author, externalLink } = req.body;
 
     const challenge = new Challenge({
       title,
       description,
+      category,
       flag,
       fileUrl,
       hint,
       deadline,
       author,
+      externalLink,
     });
 
     // If a file was uploaded and no URL is provided
@@ -59,7 +61,7 @@ router.post("/challenges", isAdmin, upload.single("file"), async (req, res) => {
 // Update a challenge
 router.put("/challenges/:id", isAdmin, upload.single("file"), async (req, res) => {
   try {
-    const { title, description, flag, fileUrl, hint, deadline, author } = req.body;
+    const { title, description, category, flag, fileUrl, hint, deadline, author, externalLink } = req.body;
     const challenge = await Challenge.findById(req.params.id);
 
     if (!challenge) {
@@ -69,9 +71,14 @@ router.put("/challenges/:id", isAdmin, upload.single("file"), async (req, res) =
     // Update challenge fields
     challenge.title = title || challenge.title;
     challenge.description = description || challenge.description;
+    challenge.category = category || challenge.category;
     challenge.flag = flag || challenge.flag;
     challenge.hint = hint;
     challenge.author = author;
+    // Update external link (allow clearing)
+    if (externalLink !== undefined) {
+      challenge.externalLink = externalLink;
+    }
 
     // Handle deadline (could be null/empty to remove it)
     if (deadline === "") {

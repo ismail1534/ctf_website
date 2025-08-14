@@ -336,6 +336,7 @@ ul {
   margin-bottom: 1rem;
   color: var(--text-secondary);
   flex-grow: 1;
+  white-space: pre-wrap;
 }
 
 /* Challenge metadata */
@@ -519,6 +520,7 @@ ul {
 .modal-content p {
   margin-bottom: 1.5rem;
   color: var(--text-secondary);
+  white-space: pre-wrap;
 }
 
 /* Download button styles */

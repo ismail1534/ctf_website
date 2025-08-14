@@ -40,6 +40,10 @@ const ChallengeSchema = new mongoose.Schema({
     type: String,
     trim: true,
   },
+  externalLink: {
+    type: String,
+    trim: true,
+  },
   createdAt: {
     type: Date,
     default: Date.now,

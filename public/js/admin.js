@@ -128,6 +128,7 @@ const renderAdminChallenges = async () => {
 
     // Add new optional fields
     formData.append("hint", document.getElementById("challenge-hint").value);
+    formData.append("externalLink", document.getElementById("challenge-external-link").value);
 
     // Handle deadline timezone properly - convert to Pakistan timezone before saving
     const deadlineInput = document.getElementById("challenge-deadline").value;
@@ -315,6 +316,11 @@ const editChallenge = async (challengeId) => {
     // Populate new fields
     document.getElementById("challenge-hint").value = challenge.hint || "";
     document.getElementById("challenge-author").value = challenge.author || "";
+    // Populate external link
+    const externalLinkInput = document.getElementById("challenge-external-link");
+    if (externalLinkInput) {
+      externalLinkInput.value = challenge.externalLink || "";
+    }
 
     // Format and set deadline if it exists
     if (challenge.deadline) {

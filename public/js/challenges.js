@@ -351,6 +351,17 @@ const openChallengeModal = (challengeId) => {
     modalActions.appendChild(hintButton);
   }
 
+  // Add external challenge link button if available
+  if (challenge.externalLink) {
+    const openLink = document.createElement("a");
+    openLink.className = "btn btn-primary";
+    openLink.href = challenge.externalLink;
+    openLink.target = "_blank";
+    openLink.rel = "noopener noreferrer";
+    openLink.innerHTML = '<i class="fas fa-external-link-alt"></i> Open Challenge';
+    modalActions.appendChild(openLink);
+  }
+
   // Show or hide file download link
   if (challenge.fileUrl) {
     // Show container for file URL
