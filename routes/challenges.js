@@ -1,11 +1,16 @@
 const express = require("express");
 const router = express.Router();
+const mongoose = require("mongoose");
 const Challenge = require("../models/Challenge");
 const User = require("../models/User");
 const SiteConfig = require("../models/SiteConfig");
 const { isAuthenticated, isNotBanned } = require("../middleware/auth");
 const path = require("path");
 const fs = require("fs");
+
+// In-memory lock to prevent concurrent submissions by the same user for the same challenge
+// This is a lightweight protection against burst submissions. It complements DB-level transaction safety.
+const submissionLocks = new Set();
 
 // Middleware to check if site is in leaderboard mode
 const checkNotLeaderboardMode = async (req, res, next) => {
@@ -96,60 +101,73 @@ router.get("/download/:id", isAuthenticated, isNotBanned, checkNotLeaderboardMod
 
 // Submit flag for a challenge
 router.post("/submit/:id", isAuthenticated, isNotBanned, checkNotLeaderboardMode, async (req, res) => {
+  const { flag } = req.body;
+  const userId = req.session.userId;
+  const challengeId = req.params.id;
+
+  const lockKey = `${userId}:${challengeId}`;
+  if (submissionLocks.has(lockKey)) {
+    return res.status(429).json({ message: "Another submission is being processed. Please wait." });
+  }
+
+  submissionLocks.add(lockKey);
+  let session;
   try {
-    const { flag } = req.body;
-    const userId = req.session.userId;
-    const challengeId = req.params.id;
+    session = await mongoose.startSession();
 
-    // Find the challenge
-    const challenge = await Challenge.findById(challengeId);
+    let responsePayload = null;
+    await session.withTransaction(async () => {
+      // Load challenge within the transaction
+      const challenge = await Challenge.findById(challengeId).session(session);
+      if (!challenge) {
+        return res.status(404).json({ message: "Challenge not found" });
+      }
 
-    if (!challenge) {
-      return res.status(404).json({ message: "Challenge not found" });
+      // Validate flag
+      if (flag !== challenge.flag) {
+        return res.status(400).json({ message: "Incorrect flag" });
+      }
+
+      // Atomically increment submission counter and get the new value
+      const updatedConfig = await SiteConfig.findOneAndUpdate(
+        {},
+        { $inc: { submissionCount: 1 } },
+        { new: true, upsert: true, session }
+      );
+
+      const submissionIndex = (updatedConfig.submissionCount || 1) - 1; // mirror previous behavior
+
+      // Atomically add solved challenge only if not already present
+      const userUpdate = await User.updateOne(
+        { _id: userId, "solvedChallenges.challenge": { $ne: challengeId } },
+        { $push: { solvedChallenges: { challenge: challengeId, submissionIndex, solvedAt: new Date() } } },
+        { session }
+      );
+
+      if (userUpdate.modifiedCount === 0) {
+        // Already solved; throw to abort transaction (rollback the counter increment)
+        const err = new Error("ALREADY_SOLVED");
+        err.code = "ALREADY_SOLVED";
+        throw err;
+      }
+
+      responsePayload = { message: "Flag correct!", submissionIndex };
+    });
+
+    if (responsePayload) {
+      return res.json(responsePayload);
     }
-
-    // Find the user
-    const user = await User.findById(userId);
-
-    if (!user) {
-      return res.status(404).json({ message: "User not found" });
-    }
-
-    // Check if user has already solved this challenge
-    const alreadySolved = user.solvedChallenges.some((solved) => solved.challenge.toString() === challengeId);
-
-    if (alreadySolved) {
+  } catch (error) {
+    if (error && (error.code === "ALREADY_SOLVED" || error.message === "ALREADY_SOLVED")) {
       return res.status(400).json({ message: "Challenge already solved" });
     }
-
-    // Check if the flag is correct
-    if (flag !== challenge.flag) {
-      return res.status(400).json({ message: "Incorrect flag" });
-    }
-
-    // Get the site config to set submission index
-    const siteConfig = await SiteConfig.getConfig();
-    const submissionIndex = siteConfig.submissionCount;
-
-    // Update the submission count in site config
-    siteConfig.submissionCount += 1;
-    await siteConfig.save();
-
-    // Add the solved challenge to the user with the correct submission index
-    user.solvedChallenges.push({
-      challenge: challengeId,
-      submissionIndex,
-    });
-
-    await user.save();
-
-    res.json({
-      message: "Flag correct!",
-      submissionIndex,
-    });
-  } catch (error) {
     console.error("Flag submission error:", error);
-    res.status(500).json({ message: "Server error" });
+    return res.status(500).json({ message: "Server error" });
+  } finally {
+    if (session) {
+      session.endSession();
+    }
+    submissionLocks.delete(lockKey);
   }
 });
 

@@ -48,6 +48,9 @@ const UserSchema = new mongoose.Schema({
   },
 });
 
+// Ensure uniqueness of solved challenge per user at the database level
+UserSchema.index({ _id: 1, "solvedChallenges.challenge": 1 }, { unique: true, sparse: true });
+
 // Hash password before saving
 UserSchema.pre("save", async function (next) {
   if (!this.isModified("password")) {
