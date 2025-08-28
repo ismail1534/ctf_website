@@ -18,6 +18,8 @@ const app = express();
 // Connect to MongoDB
 connectDB();
 
+// Trust reverse proxy (required for secure cookies behind Koyeb/Proxies)
+app.set("trust proxy", 1);
 // Middleware
 app.use(express.json());
 app.use(express.urlencoded({ extended: false }));
@@ -27,56 +29,56 @@ app.use(cookieParser());
 app.use(
   cors({
     origin: function (origin, callback) {
-      // Always log the request origin for debugging
       console.log("Request origin:", origin);
-      
-      // Allow all origins in development
+
       if (process.env.NODE_ENV !== "production") {
         return callback(null, true);
       }
 
       const allowedOrigins = [
-        process.env.FRONTEND_URL, 
-        "http://localhost:3000", 
+        process.env.FRONTEND_URL,
+        "http://localhost:3000",
         "https://ctf-website-mv21.vercel.app",
-        process.env.KOYEB_URL
-      ].filter(Boolean); // Remove any undefined values
+        process.env.KOYEB_URL,
+      ].filter(Boolean);
 
-      // Allow requests with no origin (like mobile apps, curl, postman)
       if (!origin) {
-        console.log("Request with no origin");
         return callback(null, true);
       }
 
-      if (allowedOrigins.indexOf(origin) !== -1) {
-        console.log("Allowed origin:", origin);
+      if (allowedOrigins.includes(origin)) {
         return callback(null, true);
       }
 
-      // In production, always accept requests from Vercel frontend for now
-      if (origin === "https://ctf-website-mv21.vercel.app") {
-        console.log("Allowing Vercel frontend:", origin);
-        return callback(null, true);
-      }
-
-      console.log("Origin not allowed:", origin);
       return callback(new Error("CORS not allowed"));
     },
     credentials: true,
     methods: ["GET", "POST", "PUT", "DELETE", "OPTIONS"],
-    allowedHeaders: ["Content-Type", "Authorization", "Cookie"],
+    allowedHeaders: ["Origin", "X-Requested-With", "Content-Type", "Accept", "Authorization", "Cookie"],
     exposedHeaders: ["set-cookie"],
   })
 );
 
-// Handle preflight OPTIONS requests
+// Handle preflight OPTIONS requests dynamically with allowed origin echo
 app.options('*', (req, res) => {
-  // Set CORS headers explicitly for preflight requests
-  res.header('Access-Control-Allow-Origin', 'https://ctf-website-mv21.vercel.app');
-  res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
-  res.header('Access-Control-Allow-Headers', 'Content-Type, Authorization, Cookie');
-  res.header('Access-Control-Allow-Credentials', 'true');
-  res.status(204).end();
+  const origin = req.headers.origin;
+  const allowedOrigins = [
+    process.env.FRONTEND_URL,
+    "http://localhost:3000",
+    "https://ctf-website-mv21.vercel.app",
+    process.env.KOYEB_URL,
+  ].filter(Boolean);
+
+  if (!origin || process.env.NODE_ENV !== "production" || allowedOrigins.includes(origin)) {
+    res.header('Access-Control-Allow-Origin', origin || '*');
+    res.header('Vary', 'Origin');
+    res.header('Access-Control-Allow-Methods', 'GET,POST,PUT,DELETE,OPTIONS');
+    res.header('Access-Control-Allow-Headers', 'Origin, X-Requested-With, Content-Type, Accept, Authorization, Cookie');
+    res.header('Access-Control-Allow-Credentials', 'true');
+    return res.status(204).end();
+  }
+
+  return res.status(403).end();
 });
 
 // Add request logging middleware
@@ -120,11 +122,11 @@ app.use(
       touchAfter: 24 * 3600, // time period in seconds
     }),
     cookie: {
-      secure: process.env.NODE_ENV === "production", // Only use secure in production
-      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // Use none for cross-site requests in production
+      secure: process.env.NODE_ENV === "production", // required for iOS Safari when SameSite=None
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site cookies allowed
       maxAge: 24 * 60 * 60 * 1000, // 24 hours
       httpOnly: true,
-      domain: undefined, // Don't set a specific domain
+      // Do not set domain; let browser infer host to avoid iOS domain mis-match
       path: "/",
     },
     proxy: true, // Trust the reverse proxy
