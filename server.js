@@ -113,7 +113,7 @@ app.use("/api", (req, res, next) => {
 app.use(
   session({
     secret: process.env.SESSION_SECRET || "default_session_secret",
-    resave: true,
+    resave: false,
     saveUninitialized: false,
     store: MongoStore.create({
       mongoUrl: process.env.MONGODB_URI,
@@ -121,6 +121,7 @@ app.use(
       autoRemove: "native",
       touchAfter: 24 * 3600, // time period in seconds
     }),
+    rolling: true, // always set cookie on response to refresh expiry (helps Safari)
     cookie: {
       secure: process.env.NODE_ENV === "production", // required for iOS Safari when SameSite=None
       sameSite: process.env.NODE_ENV === "production" ? "none" : "lax", // cross-site cookies allowed

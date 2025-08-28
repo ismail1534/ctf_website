@@ -282,4 +282,25 @@ router.get("/status", (req, res) => {
   });
 });
 
+// Bounce endpoint to establish cookie in first-party context (helps iOS Safari)
+router.get("/bounce", (req, res) => {
+  try {
+    const redirect = req.query.redirect || "/";
+
+    // Force a session write to ensure Set-Cookie is emitted
+    if (req.session) {
+      req.session.lastBounceAt = Date.now();
+    }
+
+    // Use a small HTML redirect to avoid issues with CORS on 302 in some environments
+    res.setHeader("Content-Type", "text/html; charset=utf-8");
+    return res.send(
+      `<!doctype html><html><head><meta http-equiv="refresh" content="0;url='${redirect.replace(/'/g, '%27')}'" /></head><body>Redirecting...</body></html>`
+    );
+  } catch (error) {
+    console.error("Bounce error:", error);
+    return res.redirect("/");
+  }
+});
+
 module.exports = router;

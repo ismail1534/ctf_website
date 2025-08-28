@@ -35,15 +35,24 @@ const renderLogin = () => {
         loginAlert.innerHTML = data.message;
         loginAlert.className = "alert alert-success";
 
-        // Check if session is active
-        const statusCheck = await fetch(`${API_BASE_URL}/api/auth/status`, {
-          credentials: "include",
-        });
+        // Safari cookie bounce workaround
+        const isSafari = /^((?!chrome|android).)*safari/i.test(navigator.userAgent);
+        if (isSafari) {
+          try {
+            // Navigate through a bounce endpoint to force Set-Cookie in a first-party context
+            const bounceUrl = `${API_BASE_URL}/api/auth/bounce?redirect=${encodeURIComponent(window.location.origin + '/#/dashboard')}`;
+            window.location.href = bounceUrl;
+            return;
+          } catch (e) {
+            console.warn("Bounce navigation failed, falling back:", e);
+          }
+        }
 
-        console.log("Session status check after login:", await statusCheck.json());
-
-        // Redirect to dashboard after login immediately
-        console.log("Login successful, navigating to dashboard");
+        // Non-Safari: verify and navigate
+        try {
+          const statusCheck = await fetch(`${API_BASE_URL}/api/auth/status`, { credentials: "include" });
+          console.log("Session status check after login:", await statusCheck.json());
+        } catch(_) {}
         navigateTo("/dashboard");
       } else {
         loginAlert.innerHTML = data.message;
