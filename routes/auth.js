@@ -290,16 +290,26 @@ router.get("/bounce", (req, res) => {
     // Force a session write to ensure Set-Cookie is emitted
     if (req.session) {
       req.session.lastBounceAt = Date.now();
+      return req.session.save((err) => {
+        if (err) {
+          console.error("Bounce session save error:", err);
+          // Even if save fails, attempt redirect without body
+        }
+        res.status(302);
+        res.setHeader("Location", redirect);
+        return res.end();
+      });
     }
 
-    // Use a small HTML redirect to avoid issues with CORS on 302 in some environments
-    res.setHeader("Content-Type", "text/html; charset=utf-8");
-    return res.send(
-      `<!doctype html><html><head><meta http-equiv="refresh" content="0;url='${redirect.replace(/'/g, '%27')}'" /></head><body>Redirecting...</body></html>`
-    );
+    // No session object; still redirect without body
+    res.status(302);
+    res.setHeader("Location", redirect);
+    return res.end();
   } catch (error) {
     console.error("Bounce error:", error);
-    return res.redirect("/");
+    res.status(302);
+    res.setHeader("Location", "/");
+    return res.end();
   }
 });
 

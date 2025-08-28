@@ -40,7 +40,7 @@ const renderLogin = () => {
         if (isSafari) {
           try {
             // Navigate through a bounce endpoint to force Set-Cookie in a first-party context
-            const bounceUrl = `${API_BASE_URL}/api/auth/bounce?redirect=${encodeURIComponent(window.location.origin + '/#/dashboard')}`;
+            const bounceUrl = `${API_BASE_URL}/api/auth/bounce?redirect=${encodeURIComponent('/#/dashboard')}`;
             window.location.href = bounceUrl;
             return;
           } catch (e) {
