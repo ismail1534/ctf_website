@@ -42,8 +42,8 @@ router.get("/", isAuthenticated, isNotBanned, async (req, res) => {
       });
     }
 
-    // Get challenges but don't return the flag field
-    const challenges = await Challenge.find().select("-flag");
+    // Get challenges but don't return the flag field, sorted by newest first
+    const challenges = await Challenge.find().select("-flag").sort({ createdAt: -1 });
     res.json({ challenges });
   } catch (error) {
     console.error("Get challenges error:", error);
