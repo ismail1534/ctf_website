@@ -102,7 +102,7 @@ const renderChallenges = () => {
   const categories = {};
 
   // Initialize all possible categories first
-  ["OSINT", "Forensics", "Cryptography", "Web", "Reverse Engineering"].forEach((cat) => {
+  ["OSINT", "Forensics", "Cryptography", "Web", "Reverse Engineering", "Pwn", "Misc"].forEach((cat) => {
     categories[cat] = [];
   });
 

@@ -13,7 +13,7 @@ const ChallengeSchema = new mongoose.Schema({
   category: {
     type: String,
     required: true,
-    enum: ["OSINT", "Forensics", "Cryptography", "Web", "Reverse Engineering"],
+    enum: ["OSINT", "Forensics", "Cryptography", "Web", "Reverse Engineering", "Pwn", "Misc"],
     default: "Forensics",
   },
   flag: {
