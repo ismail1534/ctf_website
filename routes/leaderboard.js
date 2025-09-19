@@ -13,26 +13,38 @@ router.get("/", async (req, res) => {
 
     // Process users for leaderboard display
     const leaderboard = users.map((user) => {
-      // Get the lowest submission index to determine user ranking
-      const minSubmissionIndex = Math.min(...user.solvedChallenges.map((solved) => solved.submissionIndex));
+      // Number of solved challenges
+      const challengesSolved = user.solvedChallenges.length;
+
+      // Determine when the user achieved their current score (Nth solve)
+      // Use the highest submissionIndex among the user's solves as the timestamp of reaching this score
+      const indices = user.solvedChallenges
+        .map((s) => s.submissionIndex)
+        .filter((v) => typeof v === "number" && !isNaN(v));
+
+      const lastSolveIndex = indices.length > 0 ? Math.max(...indices) : Number.MAX_SAFE_INTEGER;
 
       return {
         username: user.username,
-        challengesSolved: user.solvedChallenges.length,
-        submissionIndex: minSubmissionIndex,
+        challengesSolved,
+        // For compatibility we can still include min index, though we don't sort by it anymore
+        submissionIndex: indices.length > 0 ? Math.min(...indices) : Number.MAX_SAFE_INTEGER,
+        lastSolveIndex,
       };
     });
 
     // Sort by number of challenges solved (descending) first,
-    // then by submission index (ascending) for tiebreakers
+    // then by the earliest time they reached that total (ascending lastSolveIndex)
     leaderboard.sort((a, b) => {
-      // First, compare by number of challenges solved (descending)
       if (b.challengesSolved !== a.challengesSolved) {
         return b.challengesSolved - a.challengesSolved;
       }
-      
-      // If same number of challenges, sort by earliest submission index (ascending)
-      return a.submissionIndex - b.submissionIndex;
+      // Earlier achiever of the current score stays on top
+      if (a.lastSolveIndex !== b.lastSolveIndex) {
+        return a.lastSolveIndex - b.lastSolveIndex;
+      }
+      // Stable fallback: alphabetical by username
+      return a.username.localeCompare(b.username);
     });
 
     res.json({ leaderboard });
